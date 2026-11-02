@@ -1,9 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
     <PackageReference Include="Scalar.AspNetCore" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Procurement.Contracts\Procurement.Contracts.csproj" />
+    <ProjectReference Include="..\Procurement.Sync\Procurement.Sync.csproj" />
   </ItemGroup>
 </Project>

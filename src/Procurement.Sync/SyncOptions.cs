@@ -29,6 +29,15 @@ public sealed class SyncOptions
 
     public TimeSpan LeaseDuration { get; set; } = TimeSpan.FromMinutes(15);
 
+    /// <summary>
+    /// Status polling re-reads this much before the last watermark, in case SAP timestamps collide.
+    /// Re-applying a status is harmless because statuses only move forward.
+    /// </summary>
+    public TimeSpan StatusSyncOverlap { get; set; } = TimeSpan.FromSeconds(2);
+
+    /// <summary>Scan SAP during reconciliation to prove there are no duplicates or orphans.</summary>
+    public bool VerifyAgainstSap { get; set; } = true;
+
     /// <summary>Directory for reconciliation reports.</summary>
     public string ReportDirectory { get; set; } = "reports";
 

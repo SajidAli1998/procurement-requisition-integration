@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Procurement.Sync.Clients;
 using Procurement.Sync.Http;
 using Procurement.Sync.Pipeline;
+using Procurement.Sync.Reporting;
 using Procurement.Sync.Store;
 using Procurement.Sync.Validation;
 
@@ -33,7 +34,12 @@ public static class ServiceCollectionExtensions
 
         services.AddTransient<ExtractStage>();
         services.AddTransient<DispatchStage>();
+        services.AddTransient<StatusSyncStage>();
+        services.AddTransient<WritebackStage>();
+        services.AddTransient<ReportBuilder>();
+        services.AddSingleton<ReportWriter>();
         services.AddTransient<SyncRunner>();
+        services.AddTransient<QuarantineService>();
         return services;
     }
 

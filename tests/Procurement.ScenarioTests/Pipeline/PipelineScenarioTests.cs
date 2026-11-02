@@ -76,7 +76,11 @@ public sealed class PipelineScenarioTests
         var second = await h.RunAsync();
 
         second.Count(RunEventKind.Created).ShouldBe(0);
-        second.Count(RunEventKind.Extracted).ShouldBe(0, "the checkpoint cursor means only new changes are read");
+        second.Count(RunEventKind.Amended).ShouldBe(0);
+        // Only records changed since the checkpoint are read: our own status write-backs, which carry no content change.
+        second.Count(RunEventKind.Extracted).ShouldBe(ExpectedInSap);
+        second.Count(RunEventKind.Unchanged).ShouldBe(ExpectedInSap);
+        second.Count(RunEventKind.WrittenBack).ShouldBe(0);
         (await h.SapStatsAsync()).ShouldBe((ExpectedInSap, 0));
     }
 
@@ -97,7 +101,8 @@ public sealed class PipelineScenarioTests
         await Task.Delay(TimeSpan.FromSeconds(1.2), Ct); // the outage also opened the source circuit breaker
         var second = await h.RunAsync();
 
-        second.Count(RunEventKind.Extracted).ShouldBe(100);
+        // The remaining 100 records, plus those whose status was written back in the first run.
+        second.Count(RunEventKind.Extracted).ShouldBe(100 + first.Count(RunEventKind.WrittenBack));
         (await h.SapStatsAsync()).ShouldBe((ExpectedInSap, 0));
     }
 
@@ -142,6 +147,7 @@ public sealed class PipelineScenarioTests
         var result = await h.RunAsync();
 
         result.Count(RunEventKind.Created).ShouldBe(0);
+        result.Count(RunEventKind.Amended).ShouldBe(0, "identical content is adopted, not re-sent");
         result.Count(RunEventKind.AlreadyInSap).ShouldBe(ExpectedInSap);
         (await h.SapStatsAsync()).ShouldBe((ExpectedInSap, 0));
     }

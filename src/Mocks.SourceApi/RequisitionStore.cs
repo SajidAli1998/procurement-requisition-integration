@@ -7,7 +7,7 @@ public sealed record RequisitionPage(JsonArray Items, string? NextCursor, bool H
 
 public sealed record ErpStatusUpdate(string ErpReference, string ErpStatus, DateTimeOffset ErpStatusAt, string? Message);
 
-public enum UpdateOutcome { Updated, NotFound, PreconditionMissing, PreconditionFailed }
+public enum UpdateOutcome { Updated, NotFound, PreconditionMissing, PreconditionFailed, NotAllowed }
 
 /// <summary>
 /// In-memory store for the internal requisition system. Records are kept as raw JSON so
@@ -55,7 +55,7 @@ public sealed class RequisitionStore
         }
     }
 
-    public RequisitionPage List(string? status, DateTime? updatedAfter, KeysetCursor? after, int limit, bool pageOverlap)
+    public RequisitionPage List(string? status, string? requester, DateTime? updatedAfter, KeysetCursor? after, int limit, bool pageOverlap)
     {
         lock (_gate)
         {
@@ -63,6 +63,7 @@ public sealed class RequisitionStore
                 .Where(e => after is null || after.Value.IsBefore(e.UpdatedAt, e.Key))
                 .Where(e => updatedAfter is null || e.UpdatedAt > updatedAfter)
                 .Where(e => status is null || StatusOf(e.Body) == status)
+                .Where(e => requester is null || StringOf(e.Body, "requester") == requester)
                 .OrderBy(e => e.UpdatedAt).ThenBy(e => e.Key, StringComparer.Ordinal)
                 .Take(limit + 1)
                 .ToList();
@@ -116,6 +117,44 @@ public sealed class RequisitionStore
         }
     }
 
+    /// <summary>Creates a new requisition awaiting approval (used by the assistant API).</summary>
+    public (JsonObject Body, long Version) Create(JsonObject body)
+    {
+        lock (_gate)
+        {
+            var next = _entries.Keys.Where(k => k.StartsWith("REQ-2026-", StringComparison.Ordinal))
+                .Select(k => int.TryParse(k.AsSpan(9), out var n) ? n : 0).DefaultIfEmpty(0).Max() + 1;
+            var id = $"REQ-2026-{next:D6}";
+            var now = _clock.UtcNow;
+            body["id"] = id;
+            body["status"] = "PendingApproval";
+            body["createdAt"] = now.ToString("O");
+            body["approvedAt"] = null;
+            body["erpSync"] = null;
+            var entry = new Entry(id, 1, now, body);
+            _entries[id] = entry;
+            return (Render(entry), entry.Version);
+        }
+    }
+
+    /// <summary>Withdraws a requisition that is still awaiting approval.</summary>
+    public (UpdateOutcome Outcome, JsonObject? Body, long Version) Withdraw(string id, HttpRequest request)
+    {
+        lock (_gate)
+        {
+            if (!_entries.TryGetValue(id, out var e)) return (UpdateOutcome.NotFound, null, 0);
+            switch (ETags.CheckIfMatch(request, e.Version))
+            {
+                case PreconditionResult.Missing: return (UpdateOutcome.PreconditionMissing, null, e.Version);
+                case PreconditionResult.Failed: return (UpdateOutcome.PreconditionFailed, null, e.Version);
+            }
+            if (StatusOf(e.Body) is not ("PendingApproval" or "Draft")) return (UpdateOutcome.NotAllowed, Render(e), e.Version);
+            e.Body["status"] = "Cancelled";
+            Touch(e);
+            return (UpdateOutcome.Updated, Render(e), e.Version);
+        }
+    }
+
     /// <summary>Simulates a user editing the requisition in the source system (admin only).</summary>
     public JsonObject? Edit(string id, JsonObject mergePatch)
     {
@@ -135,8 +174,10 @@ public sealed class RequisitionStore
         e.UpdatedAt = _clock.UtcNow;
     }
 
-    private static string? StatusOf(JsonObject body) =>
-        body["status"] is JsonValue v && v.TryGetValue<string>(out var s) ? s : null;
+    private static string? StatusOf(JsonObject body) => StringOf(body, "status");
+
+    private static string? StringOf(JsonObject body, string name) =>
+        body[name] is JsonValue v && v.TryGetValue<string>(out var s) ? s : null;
 
     private static JsonObject Render(Entry e)
     {

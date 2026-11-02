@@ -23,6 +23,10 @@ public sealed class SyncHarness : IAsyncDisposable
     private readonly Dictionary<string, string?> _overrides;
     private SqliteConnection _keepAlive = null!;
     private ServiceProvider _services = null!;
+    private AssistantApiFactory? _assistant;
+
+    public string ConnectionString { get; private set; } = "";
+    public string ReportDirectory { get; } = Path.Combine(Path.GetTempPath(), "procsync-tests", Guid.NewGuid().ToString("N"));
 
     public SourceApiFactory Source { get; } = new();
     public SapApiFactory Sap { get; } = new();
@@ -50,6 +54,7 @@ public sealed class SyncHarness : IAsyncDisposable
     private void BuildServices()
     {
         var db = $"Data Source=sync-{Guid.NewGuid():N};Mode=Memory;Cache=Shared";
+        ConnectionString = db;
         _keepAlive = new SqliteConnection(db);
         _keepAlive.Open();
 
@@ -70,6 +75,7 @@ public sealed class SyncHarness : IAsyncDisposable
             ["Sync:Resilience:BreakerMinimumThroughput"] = "5",
             ["Sync:Resilience:BreakerSamplingDuration"] = "00:00:05",
             ["Sync:Resilience:BreakerBreakDuration"] = "00:00:01",
+            ["Sync:ReportDirectory"] = ReportDirectory,
         };
         foreach (var (k, v) in _overrides) settings[k] = v;
 
@@ -83,6 +89,9 @@ public sealed class SyncHarness : IAsyncDisposable
     }
 
     public IServiceProvider Services => _services;
+
+    /// <summary>The assistant API, wired to the same source mock and integration store.</summary>
+    public AssistantApiFactory Assistant => _assistant ??= new AssistantApiFactory(Source, ConnectionString);
 
     public Task<RunResult> RunAsync() => _services.GetRequiredService<SyncRunner>().RunAsync("test", Ct);
 
@@ -126,6 +135,8 @@ public sealed class SyncHarness : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if (_assistant is not null) await _assistant.DisposeAsync();
+        if (Directory.Exists(ReportDirectory)) Directory.Delete(ReportDirectory, recursive: true);
         await _services.DisposeAsync();
         await _keepAlive.DisposeAsync();
         SourceAdmin.Dispose();

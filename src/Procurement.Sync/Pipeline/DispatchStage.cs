@@ -147,10 +147,10 @@ public sealed class DispatchStage(
                 $"SAP already holds {ordered.Count} requisitions for this reference ({string.Join(", ", ordered.Select(p => p.PurchaseRequisition))}); using {pr.PurchaseRequisition}", Now);
         }
 
-        if (pr.ExternalVersion >= item.Requisition.Version)
+        if (pr.ExternalVersion >= item.Requisition.Version || SapMapper.SameContent(pr, item.Requisition))
         {
             var kind = item.WasInDoubt ? RunEventKind.InDoubtResolved : RunEventKind.AlreadyInSap;
-            Adopt(item, pr, pr.ETag, kind, $"SAP PR {pr.PurchaseRequisition} already holds v{pr.ExternalVersion}");
+            Adopt(item, pr, pr.ETag, kind, $"SAP PR {pr.PurchaseRequisition} already holds this content (v{pr.ExternalVersion})");
             return Flow.Continue;
         }
 
@@ -178,9 +178,9 @@ public sealed class DispatchStage(
                 current = fetched.Value! with { ETag = fetched.ETag ?? fetched.Value!.ETag };
             }
 
-            if (current.ExternalVersion >= req.Version)
+            if (current.ExternalVersion >= req.Version || SapMapper.SameContent(current, req))
             {
-                Adopt(item, current, current.ETag, RunEventKind.AlreadyInSap, $"SAP PR {current.PurchaseRequisition} already holds v{current.ExternalVersion}");
+                Adopt(item, current, current.ETag, RunEventKind.AlreadyInSap, $"SAP PR {current.PurchaseRequisition} already holds this content (v{current.ExternalVersion})");
                 return Flow.Continue;
             }
 

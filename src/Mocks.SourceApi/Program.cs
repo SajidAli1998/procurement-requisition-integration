@@ -18,7 +18,7 @@ app.MapFaultAdmin();
 var api = app.MapGroup("/api/requisitions").WithTags("Requisitions");
 
 api.MapGet("/", (RequisitionStore store, FaultInjector faults,
-        string? status, DateTimeOffset? updatedAfter, string? cursor, int? limit) =>
+        string? status, string? requester, DateTimeOffset? updatedAfter, string? cursor, int? limit) =>
     {
         var size = limit ?? 50;
         if (size is < 1 or > 100)
@@ -32,7 +32,7 @@ api.MapGet("/", (RequisitionStore store, FaultInjector faults,
             after = decoded;
         }
 
-        var page = store.List(status, updatedAfter?.UtcDateTime, after, size, faults.Settings.PageOverlap);
+        var page = store.List(status, requester, updatedAfter?.UtcDateTime, after, size, faults.Settings.PageOverlap);
         return Results.Ok(new { items = page.Items, nextCursor = page.NextCursor, hasMore = page.HasMore });
     })
     .WithSummary("List requisitions in change order (updatedAt, id) with a durable resume cursor.");
@@ -66,6 +66,29 @@ api.MapPut("/{id}/erp-status", (string id, ErpStatusUpdate update, RequisitionSt
         }
     })
     .WithSummary("Write the ERP status back onto a requisition. Requires If-Match.");
+
+api.MapPost("/", (JsonObject body, RequisitionStore store, HttpResponse response) =>
+    {
+        var (created, version) = store.Create(body);
+        response.Headers.ETag = ETags.For(version);
+        return Results.Created($"/api/requisitions/{created["id"]}", created);
+    })
+    .WithSummary("Create a requisition awaiting approval. The server assigns id, status and timestamps.");
+
+api.MapPost("/{id}/withdraw", (string id, RequisitionStore store, HttpRequest request, HttpResponse response) =>
+    {
+        var (outcome, body, version) = store.Withdraw(id, request);
+        response.Headers.ETag = ETags.For(version);
+        return outcome switch
+        {
+            UpdateOutcome.NotFound => Results.Problem(statusCode: 404, title: $"Requisition {id} not found"),
+            UpdateOutcome.PreconditionMissing => ETags.PreconditionProblem(PreconditionResult.Missing, version, response),
+            UpdateOutcome.PreconditionFailed => ETags.PreconditionProblem(PreconditionResult.Failed, version, response),
+            UpdateOutcome.NotAllowed => Results.Problem(statusCode: 409, title: "Only requisitions awaiting approval can be withdrawn"),
+            _ => Results.Ok(body),
+        };
+    })
+    .WithSummary("Withdraw a requisition that is still awaiting approval. Requires If-Match.");
 
 var admin = app.MapGroup("/_admin").WithTags("Admin");
 admin.MapGet("/seed-manifest", (RequisitionStore store) => Results.Ok(store.Manifest));

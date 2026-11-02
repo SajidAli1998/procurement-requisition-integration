@@ -40,6 +40,29 @@ public static class SapMapper
         _ => ErpStatus.Created,
     };
 
+    /// <summary>
+    /// True when SAP already holds exactly this content. Version numbers alone are not enough: our own
+    /// status write-back bumps the source version without changing what was requested.
+    /// </summary>
+    public static bool SameContent(SapRequisitionDto sap, Requisition r)
+    {
+        var expected = ToSap(r);
+        if (sap.PurReqnDescription != expected.PurReqnDescription || sap.Items.Count != expected.Items.Count) return false;
+        return sap.Items.OrderBy(i => i.PurchaseRequisitionItem, StringComparer.Ordinal)
+            .Zip(expected.Items.OrderBy(i => i.PurchaseRequisitionItem, StringComparer.Ordinal))
+            .All(p => p.First.PurchaseRequisitionItem == p.Second.PurchaseRequisitionItem
+                && p.First.Material == p.Second.Material
+                && p.First.PurchaseRequisitionItemText == p.Second.PurchaseRequisitionItemText
+                && p.First.MaterialGroup == p.Second.MaterialGroup
+                && p.First.RequestedQuantity == p.Second.RequestedQuantity
+                && p.First.BaseUnit == p.Second.BaseUnit
+                && p.First.PurchaseRequisitionPrice == p.Second.PurchaseRequisitionPrice
+                && p.First.PurReqnItemCurrency == p.Second.PurReqnItemCurrency
+                && p.First.Plant == p.Second.Plant
+                && p.First.CompanyCode == p.Second.CompanyCode
+                && p.First.DeliveryDate == p.Second.DeliveryDate);
+    }
+
     /// <summary>SAP accepts content changes only before release.</summary>
     public static bool IsAmendable(ErpStatus status) => status is ErpStatus.Created or ErpStatus.InRelease;
 

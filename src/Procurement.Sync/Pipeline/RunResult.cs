@@ -1,4 +1,5 @@
 using System.Text;
+using Procurement.Sync.Reporting;
 using Procurement.Sync.Store;
 
 namespace Procurement.Sync.Pipeline;
@@ -14,6 +15,9 @@ public sealed record RunResult(
     int Pending,
     bool Skipped = false)
 {
+    public ReconciliationReport? Report { get; init; }
+    public string? ReportPath { get; init; }
+
     public int Count(RunEventKind kind) => Events.GetValueOrDefault(kind);
 
     public static RunResult SkippedRun(string runId, string reason) =>
@@ -28,6 +32,12 @@ public sealed record RunResult(
         sb.AppendLine($"  {"retry wait",-26}{RetryWait.TotalSeconds,6:0.0}s");
         sb.AppendLine($"  {"open quarantine",-26}{OpenQuarantine,6}");
         sb.Append($"  {"pending (queued/retry)",-26}{Pending,6}");
+        if (Report is not null)
+        {
+            sb.AppendLine();
+            foreach (var i in Report.Invariants) sb.Append($"\n  [{i.Outcome.ToString().ToUpperInvariant(),-7}] {i.Name}");
+        }
+        if (ReportPath is not null) sb.Append($"\n  report: {ReportPath}");
         return sb.ToString();
     }
 }

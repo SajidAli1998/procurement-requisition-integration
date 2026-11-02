@@ -17,6 +17,8 @@ public enum RecordState
     RetryPending,
     Synced,
     Quarantined,
+    /// <summary>An operator closed the quarantine entry after handling it outside the integration.</summary>
+    Dismissed,
 }
 
 public sealed class RequisitionRecord

@@ -7,6 +7,7 @@ namespace Procurement.Sync.Clients;
 public sealed record SapRequisitionDto
 {
     public string PurchaseRequisition { get; init; } = "";
+    public string? PurReqnDescription { get; init; }
     public string ExternalReference { get; init; } = "";
     public long ExternalVersion { get; init; }
     public string ProcessingStatus { get; init; } = "";
@@ -23,6 +24,16 @@ public sealed record SapRequisitionDto
 public sealed record SapItemDto
 {
     public string PurchaseRequisitionItem { get; init; } = "";
+    public string? Material { get; init; }
+    public string? PurchaseRequisitionItemText { get; init; }
+    public string? MaterialGroup { get; init; }
+    public decimal RequestedQuantity { get; init; }
+    public string BaseUnit { get; init; } = "";
+    public decimal PurchaseRequisitionPrice { get; init; }
+    public string PurReqnItemCurrency { get; init; } = "";
+    public string Plant { get; init; } = "";
+    public string CompanyCode { get; init; } = "";
+    public DateOnly DeliveryDate { get; init; }
     public string? PurchaseOrder { get; init; }
 }
 

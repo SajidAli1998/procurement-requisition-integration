@@ -3,16 +3,24 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly;
 using Procurement.Sync.Http;
+using Procurement.Sync.Reporting;
 using Procurement.Sync.Store;
 
 namespace Procurement.Sync.Pipeline;
 
-/// <summary>One sync cycle: extract → dispatch. Guarded by a lease so overlapping runs cannot double-process.</summary>
+/// <summary>
+/// One sync cycle: extract → dispatch → status sync → write-back → reconciliation.
+/// Guarded by a lease so overlapping runs cannot double-process.
+/// </summary>
 public sealed class SyncRunner(
     IDbContextFactory<SyncDbContext> dbFactory,
     LeaseManager leases,
     ExtractStage extract,
     DispatchStage dispatch,
+    StatusSyncStage statusSync,
+    WritebackStage writeback,
+    ReportBuilder reports,
+    ReportWriter reportWriter,
     RunMetrics metrics,
     IOptions<SyncOptions> options,
     TimeProvider time,
@@ -22,7 +30,14 @@ public sealed class SyncRunner(
 
     private DateTime Now => time.GetUtcNow().UtcDateTime;
 
-    public async Task<RunResult> RunAsync(string trigger, CancellationToken ct)
+    public Task<RunResult> RunAsync(string trigger, CancellationToken ct) =>
+        ExecuteAsync(trigger, extract.RunAsync, ct);
+
+    /// <summary>Replays one requisition (e.g. from quarantine), then runs dispatch, status sync and reporting as usual.</summary>
+    public Task<RunResult> ReplayAsync(string sourceId, CancellationToken ct) =>
+        ExecuteAsync($"replay {sourceId}", (run, token) => extract.ReprocessAsync(run, sourceId, token), ct);
+
+    private async Task<RunResult> ExecuteAsync(string trigger, Func<RunContext, CancellationToken, Task> extractStep, CancellationToken ct)
     {
         await dbFactory.EnsureSyncStoreAsync(ct);
         var runId = $"run-{Now:yyyyMMdd-HHmmss}-{Guid.NewGuid():N}"[..29];
@@ -48,7 +63,7 @@ public sealed class SyncRunner(
             var issues = new List<string>();
             try
             {
-                await extract.RunAsync(run, ct);
+                await extractStep(run, ct);
             }
             catch (Exception ex) when (IsDownstreamFailure(ex) && !ct.IsCancellationRequested)
             {
@@ -60,7 +75,10 @@ public sealed class SyncRunner(
             var dispatched = await dispatch.RunAsync(run, ct);
             if (dispatched.CircuitOpen) issues.Add("SAP circuit breaker opened; remaining records stay queued for the next run");
 
-            return await FinishAsync(run, issues, ct);
+            if (await statusSync.RunAsync(run, ct) is { } statusIssue) issues.Add(statusIssue);
+            if (await writeback.RunAsync(run, ct) is { } writebackIssue) issues.Add(writebackIssue);
+
+            return await FinishAsync(run, trigger, issues, ct);
         }
         finally
         {
@@ -84,7 +102,7 @@ public sealed class SyncRunner(
         await db.SaveChangesAsync(ct);
     }
 
-    private async Task<RunResult> FinishAsync(RunContext run, List<string> issues, CancellationToken ct)
+    private async Task<RunResult> FinishAsync(RunContext run, string trigger, List<string> issues, CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var events = await db.RunEvents.Where(e => e.RunId == run.RunId)
@@ -103,8 +121,25 @@ public sealed class SyncRunner(
         row.Message = message;
         await db.SaveChangesAsync(ct);
 
+        ReconciliationReport? report = null;
+        string? reportPath = null;
+        try
+        {
+            report = await reports.BuildAsync(run.RunId, trigger, run.StartedAt, status.ToString(), message, ct);
+            reportPath = await reportWriter.WriteAsync(report, ct);
+        }
+        catch (Exception ex) when (!ct.IsCancellationRequested)
+        {
+            // The run's work is already committed; a reporting failure must not undo or hide it.
+            logger.LogError(ex, "Could not write the reconciliation report for {RunId}", run.RunId);
+        }
+
         logger.LogInformation("Run {RunId} finished: {Status}", run.RunId, status);
-        return new RunResult(run.RunId, status, message, events, metrics.Snapshot(), metrics.TotalRetryWait, openQuarantine, pending);
+        return new RunResult(run.RunId, status, message, events, metrics.Snapshot(), metrics.TotalRetryWait, openQuarantine, pending)
+        {
+            Report = report,
+            ReportPath = reportPath,
+        };
     }
 
     private static bool IsDownstreamFailure(Exception ex) =>

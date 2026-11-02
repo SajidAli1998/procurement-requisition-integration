@@ -45,7 +45,7 @@ public sealed class ExtractStage(
             var seenInPage = new HashSet<(string, long)>();
             foreach (var item in page.Items)
             {
-                await ProcessAsync(db, run, item, seenInPage, ct);
+                await ProcessAsync(db, run, item, seenInPage, force: false, ct);
             }
 
             var checkpoint = await db.Checkpoints.FindAsync([Stream], ct);
@@ -66,7 +66,22 @@ public sealed class ExtractStage(
         }
     }
 
-    private async Task ProcessAsync(SyncDbContext db, RunContext run, JsonElement item, HashSet<(string, long)> seenInPage, CancellationToken ct)
+    /// <summary>
+    /// Operator replay: re-reads one requisition from the source and pushes it through validation and
+    /// staging again, even if this version was seen before (e.g. after SAP configuration was fixed).
+    /// </summary>
+    public async Task ReprocessAsync(RunContext run, string id, CancellationToken ct)
+    {
+        var fetched = await source.GetAsync(id, ct)
+            ?? throw new InvalidOperationException($"Requisition {id} was not found in the source system");
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await ProcessAsync(db, run, fetched.Body, [], force: true, ct);
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+    }
+
+    private async Task ProcessAsync(SyncDbContext db, RunContext run, JsonElement item, HashSet<(string, long)> seenInPage, bool force, CancellationToken ct)
     {
         var now = time.GetUtcNow().UtcDateTime;
         var envelope = SourceRecordParser.ReadEnvelope(item);
@@ -74,7 +89,7 @@ public sealed class ExtractStage(
         Ledger.Event(db, run, key, RunEventKind.Extracted, $"v{envelope.Version} {envelope.Status}", now);
 
         var record = await db.Requisitions.FindAsync([key], ct);
-        if (!seenInPage.Add((key, envelope.Version)) || (record is not null && envelope.Version <= record.SourceVersion))
+        if (!force && (!seenInPage.Add((key, envelope.Version)) || (record is not null && envelope.Version <= record.SourceVersion)))
         {
             Ledger.Event(db, run, key, RunEventKind.Unchanged, $"v{envelope.Version} already processed", now);
             return;
@@ -121,18 +136,27 @@ public sealed class ExtractStage(
         }
 
         var hash = Fingerprints.ContentHash(requisition!);
-        if (record.ContentHash == hash && record.State != RecordState.Ignored)
+        if (!force && record.ContentHash == hash && record.State is not (RecordState.Ignored or RecordState.Dismissed))
         {
             Ledger.Event(db, run, key, RunEventKind.Unchanged, $"v{envelope.Version} has no content change", now);
             return;
         }
 
-        await Ledger.ResolveQuarantineAsync(db, run, key, $"Superseded by valid version {envelope.Version}", now, ct);
+        await Ledger.ResolveQuarantineAsync(db, run, key,
+            force ? $"Replayed by an operator (v{envelope.Version})" : $"Superseded by valid version {envelope.Version}", now, ct);
 
         var kind = record.SapNumber is null ? OutboxKind.Create : OutboxKind.Amend;
-        var alreadyStaged = db.Outbox.Local.Any(m => m.SourceId == key && m.SourceVersion == envelope.Version && m.Kind == kind)
-            || await db.Outbox.AnyAsync(m => m.SourceId == key && m.SourceVersion == envelope.Version && m.Kind == kind, ct);
-        if (!alreadyStaged)
+        var staged = db.Outbox.Local.FirstOrDefault(m => m.SourceId == key && m.SourceVersion == envelope.Version && m.Kind == kind)
+            ?? await db.Outbox.FirstOrDefaultAsync(m => m.SourceId == key && m.SourceVersion == envelope.Version && m.Kind == kind, ct);
+        if (staged is not null && force)
+        {
+            // Re-open the existing message: the unique (id, version, kind) index forbids a second one.
+            staged.ProcessedAt = null;
+            staged.Attempts = 0;
+            staged.NextAttemptAt = null;
+            staged.LastError = null;
+        }
+        else if (staged is null)
         {
             db.Outbox.Add(new OutboxMessage
             {
