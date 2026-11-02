@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Shouldly" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Procurement.Sync\Procurement.Sync.csproj" />
+    <ProjectReference Include="..\..\src\Mocks.SourceApi\Mocks.SourceApi.csproj" />
+    <ProjectReference Include="..\..\src\Mocks.SapApi\Mocks.SapApi.csproj" />
+    <ProjectReference Include="..\..\src\Procurement.AssistantApi\Procurement.AssistantApi.csproj" />
+  </ItemGroup>
+</Project>

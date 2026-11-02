@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Mocks.SapApi/Mocks.SapApi.csproj" />
+    <Project Path="src/Mocks.Shared/Mocks.Shared.csproj" />
+    <Project Path="src/Mocks.SourceApi/Mocks.SourceApi.csproj" />
+    <Project Path="src/Procurement.AssistantApi/Procurement.AssistantApi.csproj" />
+    <Project Path="src/Procurement.Contracts/Procurement.Contracts.csproj" />
+    <Project Path="src/Procurement.Sync.Worker/Procurement.Sync.Worker.csproj" />
+    <Project Path="src/Procurement.Sync/Procurement.Sync.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Procurement.ScenarioTests/Procurement.ScenarioTests.csproj" />
+    <Project Path="tests/Procurement.Sync.UnitTests/Procurement.Sync.UnitTests.csproj" />
+  </Folder>
+</Solution>
