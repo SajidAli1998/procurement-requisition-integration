@@ -78,6 +78,12 @@ public sealed class FaultInjector
             if (fault.Method is not null && !string.Equals(fault.Method, method, StringComparison.OrdinalIgnoreCase)) continue;
             if (fault.PathContains is not null && !path.Contains(fault.PathContains, StringComparison.OrdinalIgnoreCase)) continue;
 
+            if (fault.Skip > 0)
+            {
+                _script[i] = fault with { Skip = fault.Skip - 1 };
+                return null;
+            }
+
             if (fault.Count <= 1) _script.RemoveAt(i);
             else _script[i] = fault with { Count = fault.Count - 1 };
 

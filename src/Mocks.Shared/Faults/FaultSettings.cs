@@ -42,6 +42,9 @@ public sealed record ScriptedFault
     public string? Method { get; init; }
     public string? PathContains { get; init; }
     public int Count { get; init; } = 1;
+
+    /// <summary>Matching requests to let through before the fault starts, e.g. "fail after page 3".</summary>
+    public int Skip { get; init; }
     public int StatusCode { get; init; } = 503;
     public int RetryAfterSeconds { get; init; } = 1;
     public int DelayMs { get; init; }

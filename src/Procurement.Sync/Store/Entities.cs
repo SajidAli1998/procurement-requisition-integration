@@ -113,7 +113,7 @@ public sealed class SyncRun
 /// <summary>Everything that happened to a record during a run; the reconciliation report is built from these.</summary>
 public enum RunEventKind
 {
-    Extracted, Unchanged, Ignored, Quarantined, QuarantineResolved,
+    Extracted, Staged, Unchanged, Ignored, Quarantined, QuarantineResolved,
     Created, AlreadyInSap, Amended, InDoubt, InDoubtResolved, RetryScheduled, RetryExhausted,
     StatusChanged, StatusIgnored, WrittenBack, Conflict, SourceChangedAfterTransfer,
 }
