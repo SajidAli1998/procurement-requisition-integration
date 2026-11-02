@@ -1,0 +1,977 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Procurement Assistant API",
+    "description": "API for an AI procurement assistant acting on behalf of a signed-in user.\n\nRules for agents:\n1. Raising a request never commits spend: it is created as PendingApproval and a person approves it.\n2. Look up codes with the /v1/reference endpoints; never invent cost centers, plants or materials. Prices come from the catalogue.\n3. Call validateRequisitionRequest first and fix every issue before creating.\n4. Send a new Idempotency-Key (UUID) per user intent on create, and reuse it only when retrying that same request.\n5. Branch on problem.code, not on titles. If problem.retryable is false, do not retry; follow problem.suggestedAction.\n6. Relay statusReason and nextExpectedStep to the user as written.\n7. Withdrawing needs the user's explicit confirmation and the ETag from the latest read.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5103/"
+    }
+  ],
+  "paths": {
+    "/v1/requisition-requests:validate": {
+      "post": {
+        "tags": [
+          "Procurement.AssistantApi"
+        ],
+        "summary": "Check a draft request without creating anything",
+        "description": "Returns every problem with its field, code and a suggestion, plus the estimated total at catalogue prices. Call this before createRequisitionRequest.",
+        "operationId": "validateRequisitionRequest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRequisitionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "requisitions:draft"
+            ]
+          }
+        ],
+        "x-mcp": {
+          "toolName": "validateRequisitionRequest",
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false,
+          "requiresUserConfirmation": false
+        },
+        "x-required-scopes": [
+          "requisitions:draft"
+        ]
+      }
+    },
+    "/v1/requisition-requests": {
+      "post": {
+        "tags": [
+          "Procurement.AssistantApi"
+        ],
+        "summary": "Raise a purchase requisition for approval",
+        "description": "Creates the request as PendingApproval for the signed-in user; nothing is ordered until a person approves it. Requires an Idempotency-Key header. Returns the request with its status.",
+        "operationId": "createRequisitionRequest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRequisitionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "requisitions:draft"
+            ]
+          }
+        ],
+        "x-mcp": {
+          "toolName": "createRequisitionRequest",
+          "readOnlyHint": false,
+          "idempotentHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false,
+          "requiresUserConfirmation": false
+        },
+        "x-required-scopes": [
+          "requisitions:draft"
+        ]
+      },
+      "get": {
+        "tags": [
+          "Procurement.AssistantApi"
+        ],
+        "summary": "List the user's requests, least recently changed first",
+        "description": "Only the signed-in user's requests are returned. Page with cursor; limit is 1-50 (default 20).",
+        "operationId": "listRequisitionRequests",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionPage"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "requisitions:read"
+            ]
+          }
+        ],
+        "x-mcp": {
+          "toolName": "listRequisitionRequests",
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false,
+          "requiresUserConfirmation": false
+        },
+        "x-required-scopes": [
+          "requisitions:read"
+        ]
+      }
+    },
+    "/v1/requisition-requests/{id}": {
+      "get": {
+        "tags": [
+          "Procurement.AssistantApi"
+        ],
+        "summary": "Get the status of one of the user's requests",
+        "description": "Returns status, a plain-language statusReason, nextExpectedStep, the SAP reference once transferred and a timeline. The ETag header is needed to withdraw.",
+        "operationId": "getRequisitionRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "requisitions:read"
+            ]
+          }
+        ],
+        "x-mcp": {
+          "toolName": "getRequisitionRequest",
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false,
+          "requiresUserConfirmation": false
+        },
+        "x-required-scopes": [
+          "requisitions:read"
+        ]
+      }
+    },
+    "/v1/requisition-requests/{id}:withdraw": {
+      "post": {
+        "tags": [
+          "Procurement.AssistantApi"
+        ],
+        "summary": "Withdraw one of the user's requests that is still awaiting approval",
+        "description": "Requires the user's explicit confirmation and If-Match with the ETag from the latest read. Requests already approved cannot be withdrawn.",
+        "operationId": "withdrawRequisitionRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequisitionView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition Failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Precondition Required",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "requisitions:draft"
+            ]
+          }
+        ],
+        "x-mcp": {
+          "toolName": "withdrawRequisitionRequest",
+          "readOnlyHint": false,
+          "idempotentHint": true,
+          "destructiveHint": true,
+          "openWorldHint": false,
+          "requiresUserConfirmation": true
+        },
+        "x-required-scopes": [
+          "requisitions:draft"
+        ]
+      }
+    },
+    "/v1/reference/materials": {
+      "get": {
+        "tags": [
+          "Procurement.AssistantApi"
+        ],
+        "summary": "Search the material and service catalogue",
+        "description": "Matches all words against code and description. Use the returned code in request lines; prices shown are what will be charged.",
+        "operationId": "searchMaterials",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MaterialInfo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "requisitions:read"
+            ]
+          }
+        ],
+        "x-mcp": {
+          "toolName": "searchMaterials",
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false,
+          "requiresUserConfirmation": false
+        },
+        "x-required-scopes": [
+          "requisitions:read"
+        ]
+      }
+    },
+    "/v1/reference/cost-centers": {
+      "get": {
+        "tags": [
+          "Procurement.AssistantApi"
+        ],
+        "summary": "List cost centers with their company and currency",
+        "operationId": "listCostCenters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CostCenterInfo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "requisitions:read"
+            ]
+          }
+        ],
+        "x-mcp": {
+          "toolName": "listCostCenters",
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false,
+          "requiresUserConfirmation": false
+        },
+        "x-required-scopes": [
+          "requisitions:read"
+        ]
+      }
+    },
+    "/v1/reference/plants": {
+      "get": {
+        "tags": [
+          "Procurement.AssistantApi"
+        ],
+        "summary": "List receiving plants, optionally for one company",
+        "operationId": "listPlants",
+        "parameters": [
+          {
+            "name": "companyCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlantInfo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [
+              "requisitions:read"
+            ]
+          }
+        ],
+        "x-mcp": {
+          "toolName": "listPlants",
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false,
+          "requiresUserConfirmation": false
+        },
+        "x-required-scopes": [
+          "requisitions:read"
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CostCenterInfo": {
+        "required": [
+          "code",
+          "name",
+          "companyCode",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "companyCode": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateRequisitionRequest": {
+        "required": [
+          "costCenter",
+          "plant",
+          "neededBy",
+          "justification",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "costCenter": {
+            "type": "string",
+            "description": "Cost center to charge, from GET /v1/reference/cost-centers."
+          },
+          "plant": {
+            "type": "string",
+            "description": "Receiving plant, from GET /v1/reference/plants. Must belong to the cost center's company."
+          },
+          "neededBy": {
+            "type": "string",
+            "description": "Date the goods or services are needed (yyyy-MM-dd), between tomorrow and one year ahead.",
+            "format": "date"
+          },
+          "justification": {
+            "maxLength": 500,
+            "minLength": 10,
+            "type": "string",
+            "description": "Business reason in the user's words, 10-500 characters."
+          },
+          "lines": {
+            "maxItems": 20,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RequestLine"
+            },
+            "description": "1-20 lines. Prices are taken from the catalogue; do not send prices."
+          },
+          "assistantSessionRef": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Optional reference to the assistant conversation, stored for audit."
+          }
+        },
+        "additionalProperties": false,
+        "description": "A purchase requisition the assistant raises on behalf of the signed-in user. It is created awaiting human approval."
+      },
+      "MaterialInfo": {
+        "required": [
+          "code",
+          "description",
+          "materialGroup",
+          "uom",
+          "unitPrice"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "materialGroup": {
+            "type": "string"
+          },
+          "uom": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PlantInfo": {
+        "required": [
+          "code",
+          "name",
+          "companyCode"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "companyCode": {
+            "type": "string"
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RequestLine": {
+        "required": [
+          "materialCode",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "materialCode": {
+            "type": "string",
+            "description": "Material or service code from GET /v1/reference/materials."
+          },
+          "quantity": {
+            "maximum": 1000,
+            "minimum": 0.001,
+            "type": "number",
+            "description": "Quantity in the material's unit of measure, greater than 0 and at most 1000. Whole numbers for EA and BOX.",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RequestStatus": {
+        "enum": [
+          "PendingApproval",
+          "Approved",
+          "TransferredToErp",
+          "ReleasedInErp",
+          "PurchaseOrderCreated",
+          "Closed",
+          "RejectedByApprover",
+          "RejectedInErp",
+          "Withdrawn",
+          "NeedsAttention"
+        ]
+      },
+      "RequisitionPage": {
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RequisitionView"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Pass as cursor to get the next page; null when done"
+          }
+        }
+      },
+      "RequisitionView": {
+        "required": [
+          "id",
+          "status",
+          "statusReason",
+          "nextExpectedStep",
+          "erpReference",
+          "purchaseOrder",
+          "costCenter",
+          "currency",
+          "totalAmount",
+          "neededBy",
+          "justification",
+          "lines",
+          "lastUpdated",
+          "timeline"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RequestStatus"
+          },
+          "statusReason": {
+            "type": "string",
+            "description": "Plain-language explanation of the status, safe to show the user"
+          },
+          "nextExpectedStep": {
+            "type": "string",
+            "description": "What happens next and whether anyone needs to act"
+          },
+          "erpReference": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "SAP purchase requisition number once transferred"
+          },
+          "purchaseOrder": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "costCenter": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "currency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "totalAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "neededBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "justification": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ViewLine"
+            }
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimelineEntry"
+            }
+          }
+        }
+      },
+      "TimelineEntry": {
+        "required": [
+          "at",
+          "event"
+        ],
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "event": {
+            "type": "string"
+          }
+        }
+      },
+      "ValidationIssue": {
+        "required": [
+          "field",
+          "code",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "JSON path of the field, e.g. lines[0].quantity"
+          },
+          "code": {
+            "type": "string",
+            "description": "Stable machine-readable code"
+          },
+          "message": {
+            "type": "string"
+          },
+          "suggestion": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "How to fix it"
+          }
+        }
+      },
+      "ValidationResult": {
+        "required": [
+          "valid",
+          "estimatedTotal",
+          "currency",
+          "issues"
+        ],
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean"
+          },
+          "estimatedTotal": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "description": "Total at catalogue prices, when all lines are valid",
+            "format": "double"
+          },
+          "currency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationIssue"
+            }
+          }
+        }
+      },
+      "ViewLine": {
+        "required": [
+          "lineNo",
+          "materialCode",
+          "description",
+          "quantity",
+          "uom",
+          "unitPrice"
+        ],
+        "type": "object",
+        "properties": {
+          "lineNo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "materialCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "uom": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unitPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "description": "User-delegated token. Scopes: requisitions:read, requisitions:draft.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Procurement.AssistantApi"
+    }
+  ]
+}

@@ -1,0 +1,313 @@
+{
+  "runId": "reconcile-20261102-121119",
+  "trigger": "reconcile",
+  "startedAt": "2026-11-02T12:11:19.513917Z",
+  "generatedAt": "2026-11-02T12:11:19.737744Z",
+  "status": "ReconciliationOnly",
+  "message": null,
+  "runCounts": {},
+  "stateTotals": {
+    "Ignored": 43,
+    "Synced": 186,
+    "Quarantined": 22
+  },
+  "transport": {},
+  "retryWaitSeconds": 0,
+  "invariants": [
+    {
+      "name": "Every approved requisition is accounted for",
+      "outcome": "Pass",
+      "detail": "208 approved: 186 Synced, 22 Quarantined."
+    },
+    {
+      "name": "No duplicate requisitions in SAP",
+      "outcome": "Pass",
+      "detail": "186 SAP requisitions, each with a unique external reference."
+    },
+    {
+      "name": "Every synced requisition exists in SAP",
+      "outcome": "Pass",
+      "detail": "All 186 linked SAP numbers found."
+    },
+    {
+      "name": "Every SAP requisition is linked to a source requisition",
+      "outcome": "Pass",
+      "detail": "No unlinked SAP requisitions."
+    },
+    {
+      "name": "Amounts match between source and SAP",
+      "outcome": "Pass",
+      "detail": "EUR 918,779.53 in 101; USD 823,628.95 in 85."
+    },
+    {
+      "name": "Source shows the current SAP status",
+      "outcome": "Pass",
+      "detail": "All ERP statuses are written back to the source."
+    }
+  ],
+  "totals": [
+    {
+      "currency": "EUR",
+      "localCount": 101,
+      "localAmount": 918779.53,
+      "sapCount": 101,
+      "sapAmount": 918779.53,
+      "matches": true
+    },
+    {
+      "currency": "USD",
+      "localCount": 85,
+      "localAmount": 823628.95,
+      "sapCount": 85,
+      "sapAmount": 823628.95,
+      "matches": true
+    }
+  ],
+  "openFailures": [
+    {
+      "key": "REQ-2026-000029",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "InvalidQuantity",
+      "summary": "Line 10: quantity -5 must be greater than zero",
+      "suggestedAction": "Correct the line quantity (must be greater than zero) in the source system.",
+      "firstSeen": "2026-11-02T12:09:56.212241Z",
+      "lastSeen": "2026-11-02T12:09:56.212241Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000171",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "InvalidQuantity",
+      "summary": "Line 10: quantity -5 must be greater than zero",
+      "suggestedAction": "Correct the line quantity (must be greater than zero) in the source system.",
+      "firstSeen": "2026-11-02T12:09:56.284167Z",
+      "lastSeen": "2026-11-02T12:09:56.284167Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000014",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingLines",
+      "summary": "Requisition has no lines",
+      "suggestedAction": "Add at least one line to the requisition in the source system.",
+      "firstSeen": "2026-11-02T12:09:56.328554Z",
+      "lastSeen": "2026-11-02T12:09:56.328554Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000158",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingLines",
+      "summary": "Requisition has no lines",
+      "suggestedAction": "Add at least one line to the requisition in the source system.",
+      "firstSeen": "2026-11-02T12:09:56.072399Z",
+      "lastSeen": "2026-11-02T12:09:56.072399Z",
+      "occurrences": 1
+    },
+    {
+      "key": "NOID-748B4381FAD94C9C",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "id is missing",
+      "suggestedAction": "The source sent a requisition without an id. Raise with the source system owner; it cannot be matched or transferred.",
+      "firstSeen": "2026-11-02T12:09:56.241221Z",
+      "lastSeen": "2026-11-02T12:09:56.241221Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000116",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "requester is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-02T12:09:56.341124Z",
+      "lastSeen": "2026-11-02T12:09:56.341124Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000076",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "NeededByInPast",
+      "summary": "neededBy 2026-10-23 is in the past",
+      "suggestedAction": "Move the needed-by date to today or later in the source system.",
+      "firstSeen": "2026-11-02T12:09:55.99534Z",
+      "lastSeen": "2026-11-02T12:09:55.99534Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000216",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "NeededByInPast",
+      "summary": "neededBy 2026-10-23 is in the past",
+      "suggestedAction": "Move the needed-by date to today or later in the source system.",
+      "firstSeen": "2026-11-02T12:09:56.293001Z",
+      "lastSeen": "2026-11-02T12:09:56.293001Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000008",
+      "version": 3,
+      "stage": "Load",
+      "reason": "SapRejectedPermanent",
+      "summary": "SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000",
+      "suggestedAction": "Correct the data SAP rejected (see summary) in the source, or fix the SAP configuration, then run: procsync quarantine replay REQ-2026-000008",
+      "firstSeen": "2026-11-02T12:10:09.793588Z",
+      "lastSeen": "2026-11-02T12:10:09.793588Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000060",
+      "version": 2,
+      "stage": "Load",
+      "reason": "SapRejectedPermanent",
+      "summary": "SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000",
+      "suggestedAction": "Correct the data SAP rejected (see summary) in the source, or fix the SAP configuration, then run: procsync quarantine replay REQ-2026-000060",
+      "firstSeen": "2026-11-02T12:09:56.794761Z",
+      "lastSeen": "2026-11-02T12:09:56.794761Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000107",
+      "version": 2,
+      "stage": "Load",
+      "reason": "SapRejectedPermanent",
+      "summary": "SAP rejected the requisition: Item 00010: plant 2100 is not assigned to company code 1000",
+      "suggestedAction": "Correct the data SAP rejected (see summary) in the source, or fix the SAP configuration, then run: procsync quarantine replay REQ-2026-000107",
+      "firstSeen": "2026-11-02T12:10:00.485448Z",
+      "lastSeen": "2026-11-02T12:10:00.485448Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000151",
+      "version": 3,
+      "stage": "Load",
+      "reason": "SapRejectedPermanent",
+      "summary": "SAP rejected the requisition: Item 00010: plant 2100 is not assigned to company code 1000",
+      "suggestedAction": "Correct the data SAP rejected (see summary) in the source, or fix the SAP configuration, then run: procsync quarantine replay REQ-2026-000151",
+      "firstSeen": "2026-11-02T12:09:59.483474Z",
+      "lastSeen": "2026-11-02T12:09:59.483474Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000203",
+      "version": 1,
+      "stage": "Load",
+      "reason": "SapRejectedPermanent",
+      "summary": "SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000",
+      "suggestedAction": "Correct the data SAP rejected (see summary) in the source, or fix the SAP configuration, then run: procsync quarantine replay REQ-2026-000203",
+      "firstSeen": "2026-11-02T12:10:04.485178Z",
+      "lastSeen": "2026-11-02T12:10:04.485178Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000250",
+      "version": 2,
+      "stage": "Load",
+      "reason": "SapRejectedPermanent",
+      "summary": "SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000",
+      "suggestedAction": "Correct the data SAP rejected (see summary) in the source, or fix the SAP configuration, then run: procsync quarantine replay REQ-2026-000250",
+      "firstSeen": "2026-11-02T12:10:08.484976Z",
+      "lastSeen": "2026-11-02T12:10:08.484976Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000090",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "SchemaInvalid",
+      "summary": "lines[0].quantity must be a number, got String \u0022ten\u0022",
+      "suggestedAction": "Correct the field named in the summary in the source system; the next run picks up the corrected version automatically.",
+      "firstSeen": "2026-11-02T12:09:56.107003Z",
+      "lastSeen": "2026-11-02T12:09:56.107003Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000129",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "SchemaInvalid",
+      "summary": "neededBy \u002731/02/2026\u0027 is not a valid yyyy-MM-dd date",
+      "suggestedAction": "Correct the field named in the summary in the source system; the next run picks up the corrected version automatically.",
+      "firstSeen": "2026-11-02T12:09:56.336726Z",
+      "lastSeen": "2026-11-02T12:09:56.336726Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000228",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "SchemaInvalid",
+      "summary": "lines[0].quantity must be a number, got String \u0022ten\u0022",
+      "suggestedAction": "Correct the field named in the summary in the source system; the next run picks up the corrected version automatically.",
+      "firstSeen": "2026-11-02T12:09:56.216874Z",
+      "lastSeen": "2026-11-02T12:09:56.216874Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000103",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "TotalMismatch",
+      "summary": "totalAmount 4288.96 does not equal the sum of the lines (4188.96)",
+      "suggestedAction": "Recalculate the header total so it equals the sum of the lines.",
+      "firstSeen": "2026-11-02T12:09:56.319995Z",
+      "lastSeen": "2026-11-02T12:09:56.319995Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000245",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "TotalMismatch",
+      "summary": "totalAmount 7466.67 does not equal the sum of the lines (7366.67)",
+      "suggestedAction": "Recalculate the header total so it equals the sum of the lines.",
+      "firstSeen": "2026-11-02T12:09:56.227754Z",
+      "lastSeen": "2026-11-02T12:09:56.227754Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000188",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "UnknownCurrency",
+      "summary": "Currency \u0027XYZ\u0027 is not a supported ISO 4217 code",
+      "suggestedAction": "Use a supported ISO 4217 currency, or add the currency to the integration\u0027s reference data if it is genuinely new.",
+      "firstSeen": "2026-11-02T12:09:56.194649Z",
+      "lastSeen": "2026-11-02T12:09:56.194649Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000061",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "UnknownUnitOfMeasure",
+      "summary": "Line 10: unit of measure \u0027BUCKET\u0027 is not recognised",
+      "suggestedAction": "Use a supported unit of measure, or add it to the reference data if it is genuinely new.",
+      "firstSeen": "2026-11-02T12:09:56.154802Z",
+      "lastSeen": "2026-11-02T12:09:56.154802Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000204",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "UnknownUnitOfMeasure",
+      "summary": "Line 10: unit of measure \u0027BUCKET\u0027 is not recognised",
+      "suggestedAction": "Use a supported unit of measure, or add it to the reference data if it is genuinely new.",
+      "firstSeen": "2026-11-02T12:09:56.084609Z",
+      "lastSeen": "2026-11-02T12:09:56.084609Z",
+      "occurrences": 1
+    }
+  ],
+  "notableChanges": [],
+  "pending": [],
+  "excludedFromTotals": 0
+}

@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace Procurement.AssistantApi.Model;
 
@@ -15,12 +16,15 @@ public sealed record CreateRequisitionRequest
     public required DateOnly NeededBy { get; init; }
 
     [Description("Business reason in the user's words, 10-500 characters.")]
+    [StringLength(500, MinimumLength = 10)]
     public required string Justification { get; init; }
 
     [Description("1-20 lines. Prices are taken from the catalogue; do not send prices.")]
+    [MinLength(1), MaxLength(20)]
     public required IReadOnlyList<RequestLine> Lines { get; init; }
 
     [Description("Optional reference to the assistant conversation, stored for audit.")]
+    [StringLength(200)]
     public string? AssistantSessionRef { get; init; }
 }
 
@@ -29,7 +33,8 @@ public sealed record RequestLine
     [Description("Material or service code from GET /v1/reference/materials.")]
     public required string MaterialCode { get; init; }
 
-    [Description("Quantity in the material's unit of measure. Whole numbers for EA and BOX.")]
+    [Description("Quantity in the material's unit of measure, greater than 0 and at most 1000. Whole numbers for EA and BOX.")]
+    [Range(0.001, 1000)]
     public required decimal Quantity { get; init; }
 }
 

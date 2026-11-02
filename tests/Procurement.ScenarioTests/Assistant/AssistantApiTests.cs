@@ -113,6 +113,16 @@ public sealed class AssistantApiTests
         var problem = await Json(response);
         problem["code"]!.GetValue<string>().ShouldBe("INVALID_REQUEST_BODY");
         problem["detail"]!.GetValue<string>().ShouldContain("unitPrice");
+
+        var quotedNumber = await CreateAsync(h.Assistant.ClientFor(User), new
+        {
+            costCenter = "CC-1000-IT",
+            plant = "1100",
+            neededBy = "2026-12-01",
+            justification = "Laptops for starters",
+            lines = new[] { new { materialCode = "MAT-100001", quantity = "2" } },
+        }, "key-2");
+        quotedNumber.StatusCode.ShouldBe(HttpStatusCode.BadRequest, "numbers must be JSON numbers, not strings");
     }
 
     [Fact(DisplayName = "A05 Scopes and identity are enforced by the server")]
@@ -220,5 +230,10 @@ public sealed class AssistantApiTests
         var destructive = operations.Where(o => o["x-mcp"]!["destructiveHint"]!.GetValue<bool>()).Select(o => o["operationId"]!.GetValue<string>());
         destructive.ShouldBe(["withdrawRequisitionRequest"]);
         operations.Count(o => o["x-mcp"]!["readOnlyHint"]!.GetValue<bool>()).ShouldBe(6);
+
+        var schemas = document["components"]!["schemas"]!;
+        schemas["CreateRequisitionRequest"]!["additionalProperties"]!.GetValue<bool>().ShouldBeFalse();
+        schemas["RequestLine"]!["additionalProperties"]!.GetValue<bool>().ShouldBeFalse();
+        schemas["CreateRequisitionRequest"]!["properties"]!["lines"]!["maxItems"]!.GetValue<int>().ShouldBe(20);
     }
 }

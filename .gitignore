@@ -487,3 +487,6 @@ $RECYCLE.BIN/
 *.db-wal
 reports/*
 !reports/sample/
+
+# Local service processes started by scripts/run-all
+.run/

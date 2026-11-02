@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using Procurement.AssistantApi.Model;
 
 namespace Procurement.AssistantApi.Infrastructure;
 
@@ -39,6 +40,16 @@ public static class OpenApiSetup
                     BearerFormat = "JWT",
                     Description = "User-delegated token. Scopes: requisitions:read, requisitions:draft.",
                 };
+                return Task.CompletedTask;
+            });
+
+            // The server rejects unknown fields; say so in the contract so agents see the same rule.
+            options.AddSchemaTransformer((schema, context, _) =>
+            {
+                if (context.JsonTypeInfo.Type == typeof(CreateRequisitionRequest) || context.JsonTypeInfo.Type == typeof(RequestLine))
+                {
+                    schema.AdditionalPropertiesAllowed = false;
+                }
                 return Task.CompletedTask;
             });
 

@@ -36,7 +36,12 @@ builder.Services.AddHttpClient<SourceRequisitionsClient>((sp, http) =>
     .AddStandardResilienceHandler(o => o.Retry.DisableForUnsafeHttpMethods());
 
 builder.Services.AddProblemDetails();
-builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.ConfigureHttpJsonOptions(o =>
+{
+    o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    // Numbers must be JSON numbers; this also keeps the published schema to "type: number".
+    o.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
+});
 builder.Services.AddAssistantOpenApi();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(o =>
@@ -91,10 +96,12 @@ app.UseAuthorization();
 app.UseRateLimiter();
 app.MapOpenApi();
 app.MapScalarApiReference();
+app.MapGet("/health", () => Results.Ok(new { status = "Healthy" })).ExcludeFromDescription();
 
 var strictJson = new JsonSerializerOptions(JsonSerializerDefaults.Web)
 {
     UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+    NumberHandling = JsonNumberHandling.Strict,
     RespectNullableAnnotations = true,
     RespectRequiredConstructorParameters = true,
     Converters = { new JsonStringEnumConverter() },
