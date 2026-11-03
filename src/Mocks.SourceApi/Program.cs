@@ -92,11 +92,12 @@ api.MapPost("/{id}/withdraw", (string id, RequisitionStore store, HttpRequest re
 
 var admin = app.MapGroup("/_admin").WithTags("Admin");
 admin.MapGet("/seed-manifest", (RequisitionStore store) => Results.Ok(store.Manifest));
-admin.MapPost("/reset", (RequisitionStore store, int? seed, int? count) =>
+admin.MapPost("/reset", (RequisitionStore store, Dataset? dataset, int? seed, int? count) =>
 {
-    store.Reset(seed ?? 42, count ?? 250);
+    store.Reset(dataset ?? store.Dataset, seed ?? 42, count ?? 250);
     return Results.NoContent();
-});
+})
+.WithSummary("Reload the data: dataset=Workbook (the client's workbook, default) or Generated (seed, count).");
 admin.MapPost("/requisitions/{id}/edit", (string id, JsonObject patch, RequisitionStore store) =>
     store.Edit(id, patch) is { } body
         ? Results.Ok(body)

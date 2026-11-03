@@ -2,7 +2,7 @@
   "openapi": "3.1.1",
   "info": {
     "title": "Procurement Assistant API",
-    "description": "API for an AI procurement assistant acting on behalf of a signed-in user.\n\nRules for agents:\n1. Raising a request never commits spend: it is created as PendingApproval and a person approves it.\n2. Look up codes with the /v1/reference endpoints; never invent cost centers, plants or materials. Prices come from the catalogue.\n3. Call validateRequisitionRequest first and fix every issue before creating.\n4. Send a new Idempotency-Key (UUID) per user intent on create, and reuse it only when retrying that same request.\n5. Branch on problem.code, not on titles. If problem.retryable is false, do not retry; follow problem.suggestedAction.\n6. Relay statusReason and nextExpectedStep to the user as written.\n7. Withdrawing needs the user's explicit confirmation and the ETag from the latest read.",
+    "description": "API for an AI procurement assistant acting on behalf of a signed-in user.\n\nRules for agents:\n1. Raising a request never commits spend: it is created as PendingApproval and a person approves it.\n2. Look up codes with the /v1/reference endpoints; never invent cost centers, plants or materials. Prices come from the catalogue.\n3. Call validateRequisitionRequest first and fix every issue. Show the user confirmationSummary; only if they agree, create with\n   confirmationToken in the X-User-Confirmation header. The token only fits that exact request.\n4. Send a new Idempotency-Key (UUID) per user intent on create, and reuse it only when retrying that same request.\n5. Branch on problem.code, not on titles. If problem.retryable is false, do not retry; follow problem.suggestedAction.\n6. Relay statusReason and nextExpectedStep to the user as written.\n7. Withdrawing needs the user's explicit confirmation and the ETag from the latest read.",
     "version": "1.0.0"
   },
   "servers": [
@@ -17,7 +17,7 @@
           "Procurement.AssistantApi"
         ],
         "summary": "Check a draft request without creating anything",
-        "description": "Returns every problem with its field, code and a suggestion, plus the estimated total at catalogue prices. Call this before createRequisitionRequest.",
+        "description": "Returns every problem with its field, code and a suggestion, plus the estimated total at catalogue prices. When valid, also returns confirmationSummary to show the user and confirmationToken to send on create once they agree. Call this before createRequisitionRequest.",
         "operationId": "validateRequisitionRequest",
         "requestBody": {
           "content": {
@@ -77,7 +77,7 @@
           "Procurement.AssistantApi"
         ],
         "summary": "Raise a purchase requisition for approval",
-        "description": "Creates the request as PendingApproval for the signed-in user; nothing is ordered until a person approves it. Requires an Idempotency-Key header. Returns the request with its status.",
+        "description": "Creates the request as PendingApproval for the signed-in user; nothing is ordered until a person approves it. Requires an Idempotency-Key header and the X-User-Confirmation header (the confirmationToken from validate, sent only after the user agreed). Returns the request with its status.",
         "operationId": "createRequisitionRequest",
         "requestBody": {
           "content": {
@@ -122,6 +122,16 @@
           },
           "422": {
             "description": "Unprocessable Entity",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Precondition Required",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -222,7 +232,7 @@
           "Procurement.AssistantApi"
         ],
         "summary": "Get the status of one of the user's requests",
-        "description": "Returns status, a plain-language statusReason, nextExpectedStep, the SAP reference once transferred and a timeline. The ETag header is needed to withdraw.",
+        "description": "Returns status, a plain-language statusReason, nextExpectedStep, the SAP reference once transferred and a timeline. The ETag header is needed to withdraw. Users see their own requests; a delegated procurement role (requisitions:read:all) sees any.",
         "operationId": "getRequisitionRequest",
         "parameters": [
           {
@@ -241,6 +251,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RequisitionView"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -301,6 +321,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RequisitionView"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -907,6 +937,20 @@
             "items": {
               "$ref": "#/components/schemas/ValidationIssue"
             }
+          },
+          "confirmationSummary": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "When valid: the request in plain words. Show it to the user and ask them to confirm."
+          },
+          "confirmationToken": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "When valid: send as the X-User-Confirmation header on create, only after the user confirmed the summary. Bound to this exact request."
           }
         }
       },
@@ -963,7 +1007,7 @@
     "securitySchemes": {
       "bearer": {
         "type": "http",
-        "description": "User-delegated token. Scopes: requisitions:read, requisitions:draft.",
+        "description": "User-delegated token. Scopes: requisitions:read (own requests), requisitions:draft (raise and withdraw), requisitions:read:all (delegated procurement role).",
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }

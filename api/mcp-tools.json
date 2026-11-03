@@ -4,7 +4,7 @@
     {
       "name": "validateRequisitionRequest",
       "title": "Check a draft request without creating anything",
-      "description": "Check a draft request without creating anything. Returns every problem with its field, code and a suggestion, plus the estimated total at catalogue prices. Call this before createRequisitionRequest.",
+      "description": "Check a draft request without creating anything. Returns every problem with its field, code and a suggestion, plus the estimated total at catalogue prices. When valid, also returns confirmationSummary to show the user and confirmationToken to send on create once they agree. Call this before createRequisitionRequest.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -90,7 +90,7 @@
     {
       "name": "createRequisitionRequest",
       "title": "Raise a purchase requisition for approval",
-      "description": "Raise a purchase requisition for approval. Creates the request as PendingApproval for the signed-in user; nothing is ordered until a person approves it. Requires an Idempotency-Key header. Returns the request with its status.",
+      "description": "Raise a purchase requisition for approval. Creates the request as PendingApproval for the signed-in user; nothing is ordered until a person approves it. Requires an Idempotency-Key header and the X-User-Confirmation header (the confirmationToken from validate, sent only after the user agreed). Returns the request with its status.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -152,6 +152,10 @@
           "idempotencyKey": {
             "type": "string",
             "description": "Sent as the Idempotency-Key header. A new UUID per user intent; reuse only to retry the same request."
+          },
+          "userConfirmation": {
+            "type": "string",
+            "description": "Sent as the X-User-Confirmation header: the confirmationToken from validateRequisitionRequest, only after the user agreed to its confirmationSummary."
           }
         },
         "required": [
@@ -160,7 +164,8 @@
           "justification",
           "lines",
           "neededBy",
-          "plant"
+          "plant",
+          "userConfirmation"
         ],
         "additionalProperties": false
       },
@@ -213,7 +218,7 @@
     {
       "name": "getRequisitionRequest",
       "title": "Get the status of one of the user's requests",
-      "description": "Get the status of one of the user's requests. Returns status, a plain-language statusReason, nextExpectedStep, the SAP reference once transferred and a timeline. The ETag header is needed to withdraw.",
+      "description": "Get the status of one of the user's requests. Returns status, a plain-language statusReason, nextExpectedStep, the SAP reference once transferred and a timeline. The ETag header is needed to withdraw. Users see their own requests; a delegated procurement role (requisitions:read:all) sees any.",
       "inputSchema": {
         "type": "object",
         "properties": {

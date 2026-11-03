@@ -12,5 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Procurement.Sync\Procurement.Sync.csproj" />
+    <ProjectReference Include="..\Procurement.SyntheticData\Procurement.SyntheticData.csproj" />
   </ItemGroup>
 </Project>

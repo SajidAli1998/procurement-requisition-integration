@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Mocks.Shared;
+using Procurement.SyntheticData;
 
 namespace Mocks.SourceApi;
 
@@ -9,49 +10,64 @@ public sealed record ErpStatusUpdate(string ErpReference, string ErpStatus, Date
 
 public enum UpdateOutcome { Updated, NotFound, PreconditionMissing, PreconditionFailed, NotAllowed }
 
+/// <summary>Which data set the source serves: the client's workbook (default) or our generated stress set.</summary>
+public enum Dataset { Workbook, Generated }
+
 /// <summary>
 /// In-memory store for the internal requisition system. Records are kept as raw JSON so
 /// malformed records can be served exactly as an imperfect upstream would serve them.
 /// </summary>
 public sealed class RequisitionStore
 {
-    private sealed class Entry(string key, long version, DateTime updatedAt, JsonObject body)
+    private sealed class Entry(string key, long version, DateTime updatedAt, JsonObject body, long? listedVersion = null)
     {
         public string Key { get; } = key;
         public long Version { get; set; } = version;
         public DateTime UpdatedAt { get; set; } = updatedAt;
         public JsonObject Body { get; } = body;
+        public long? ListedVersion { get; set; } = listedVersion;
     }
 
     private readonly Lock _gate = new();
     private readonly Dictionary<string, Entry> _entries = new(StringComparer.Ordinal);
     private readonly MonotonicClock _clock;
     private readonly TimeProvider _time;
+    private readonly string? _workbookPath;
+    private readonly string? _directoryPath;
     private IReadOnlyList<SeedManifestEntry> _manifest = [];
 
     public RequisitionStore(MonotonicClock clock, TimeProvider time, IConfiguration configuration)
     {
         _clock = clock;
         _time = time;
-        Reset(configuration.GetValue("Seed:Value", 42), configuration.GetValue("Seed:Count", 250));
+        _workbookPath = configuration["Dataset:WorkbookPath"];
+        _directoryPath = configuration["Dataset:DirectoryPath"];
+        Reset(configuration.GetValue("Dataset:Source", Dataset.Workbook),
+            configuration.GetValue("Seed:Value", 42), configuration.GetValue("Seed:Count", 250));
     }
+
+    public Dataset Dataset { get; private set; }
 
     public IReadOnlyList<SeedManifestEntry> Manifest
     {
         get { lock (_gate) return _manifest; }
     }
 
-    public void Reset(int seed, int count)
+    public void Reset(Dataset dataset, int seed, int count)
     {
-        var generated = SeedData.Generate(seed, count, _time.GetUtcNow().UtcDateTime);
+        var now = _time.GetUtcNow().UtcDateTime;
+        var data = dataset == Dataset.Workbook
+            ? WorkbookSeed.Build(DataPack.Load(_workbookPath), EmployeeDirectory.Load(_directoryPath), now)
+            : SeedData.Generate(seed, count, now);
         lock (_gate)
         {
+            Dataset = dataset;
             _entries.Clear();
-            foreach (var r in generated.Records)
+            foreach (var r in data.Records)
             {
-                _entries[r.Key] = new Entry(r.Key, r.Version, r.UpdatedAt, r.Body);
+                _entries[r.Key] = new Entry(r.Key, r.Version, r.UpdatedAt, r.Body, r.ListedVersion);
             }
-            _manifest = generated.Manifest;
+            _manifest = data.Manifest;
         }
     }
 
@@ -75,9 +91,9 @@ public sealed class RequisitionStore
             // Fault mode: repeat the previous page's last record, as some buggy pagers do.
             if (pageOverlap && after is not null && _entries.TryGetValue(after.Value.Key, out var previous))
             {
-                items.Add(Render(previous));
+                items.Add(Render(previous, listed: true));
             }
-            foreach (var e in page) items.Add(Render(e));
+            foreach (var e in page) items.Add(Render(e, listed: true));
 
             // The cursor is returned even on the last page: it is the durable resume point for the next run.
             var next = page.Count > 0 ? new KeysetCursor(page[^1].UpdatedAt, page[^1].Key).Encode() : after?.Encode();
@@ -89,7 +105,10 @@ public sealed class RequisitionStore
     {
         lock (_gate)
         {
-            return _entries.TryGetValue(id, out var e) ? (Render(e), e.Version) : null;
+            if (!_entries.TryGetValue(id, out var e)) return null;
+            // Reading the record itself is authoritative; afterwards the list shows the current version too.
+            e.ListedVersion = null;
+            return (Render(e), e.Version);
         }
     }
 
@@ -122,9 +141,11 @@ public sealed class RequisitionStore
     {
         lock (_gate)
         {
-            var next = _entries.Keys.Where(k => k.StartsWith("REQ-2026-", StringComparison.Ordinal))
-                .Select(k => int.TryParse(k.AsSpan(9), out var n) ? n : 0).DefaultIfEmpty(0).Max() + 1;
-            var id = $"REQ-2026-{next:D6}";
+            // Workbook ids are REQ-7001..REQ-7120; generated ones REQ-2026-000001. New requests continue the same series.
+            var prefix = Dataset == Dataset.Workbook ? "REQ-" : "REQ-2026-";
+            var next = _entries.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal))
+                .Select(k => int.TryParse(k.AsSpan(prefix.Length), out var n) ? n : 0).DefaultIfEmpty(0).Max() + 1;
+            var id = Dataset == Dataset.Workbook ? $"REQ-{next}" : $"REQ-2026-{next:D6}";
             var now = _clock.UtcNow;
             body["id"] = id;
             body["status"] = "PendingApproval";
@@ -170,6 +191,7 @@ public sealed class RequisitionStore
 
     private void Touch(Entry e)
     {
+        e.ListedVersion = null;
         e.Version++;
         e.UpdatedAt = _clock.UtcNow;
     }
@@ -179,10 +201,10 @@ public sealed class RequisitionStore
     private static string? StringOf(JsonObject body, string name) =>
         body[name] is JsonValue v && v.TryGetValue<string>(out var s) ? s : null;
 
-    private static JsonObject Render(Entry e)
+    private static JsonObject Render(Entry e, bool listed = false)
     {
         var copy = e.Body.DeepClone().AsObject();
-        copy["version"] = e.Version;
+        copy["version"] = listed && e.ListedVersion is { } stale ? stale : e.Version;
         copy["updatedAt"] = e.UpdatedAt.ToString("O");
         return copy;
     }

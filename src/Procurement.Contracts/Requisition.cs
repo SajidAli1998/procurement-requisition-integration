@@ -22,4 +22,5 @@ public sealed record RequisitionLine(
     decimal Quantity,
     string Uom,
     decimal UnitPrice,
-    string Plant);
+    string Plant,
+    string? TaxCode = null);

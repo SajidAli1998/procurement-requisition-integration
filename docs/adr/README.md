@@ -10,5 +10,6 @@
 | [0006](0006-transport-retry-rules.md) | The transport never blindly repeats a POST |
 | [0007](0007-ai-assistant-api-safety.md) | AI assistant API: draft-only, server-enforced safety |
 | [0008](0008-tolerant-reader-strict-contract.md) | Tolerant reader for the source, strict contract for the assistant |
+| [0009](0009-client-data-pack.md) | The client's data pack is the default data set, read straight from Excel |
 
 Format: context, decision, consequences, alternatives considered.

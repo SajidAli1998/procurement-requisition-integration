@@ -7,6 +7,7 @@
     <Project Path="src/Procurement.Contracts/Procurement.Contracts.csproj" />
     <Project Path="src/Procurement.Sync.Worker/Procurement.Sync.Worker.csproj" />
     <Project Path="src/Procurement.Sync/Procurement.Sync.csproj" />
+    <Project Path="src/Procurement.SyntheticData/Procurement.SyntheticData.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Procurement.ScenarioTests/Procurement.ScenarioTests.csproj" />

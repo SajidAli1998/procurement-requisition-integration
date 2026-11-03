@@ -24,14 +24,22 @@ public sealed class AssistantApiTests
         assistantSessionRef = "conv-42",
     };
 
-    private static Task<HttpResponseMessage> CreateAsync(HttpClient client, object body, string? key = "key-1")
+    /// <summary>Validates first and, like a well-behaved assistant whose user said yes, sends the confirmation token it got back.</summary>
+    internal static async Task<HttpResponseMessage> CreateAsync(HttpClient client, object body, string? key = "key-1", bool confirm = true)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "/v1/requisition-requests") { Content = JsonContent.Create(body) };
         if (key is not null) request.Headers.Add("Idempotency-Key", key);
-        return client.SendAsync(request, Ct);
+        if (confirm && await ConfirmationTokenAsync(client, body) is { } token) request.Headers.Add("X-User-Confirmation", token);
+        return await client.SendAsync(request, Ct);
     }
 
-    private static async Task<JsonObject> Json(HttpResponseMessage response) => (await response.Content.ReadFromJsonAsync<JsonObject>(Ct))!;
+    internal static async Task<string?> ConfirmationTokenAsync(HttpClient client, object body)
+    {
+        var validated = await client.PostAsJsonAsync("/v1/requisition-requests:validate", body, Ct);
+        return validated.IsSuccessStatusCode ? (await Json(validated))["confirmationToken"]?.GetValue<string>() : null;
+    }
+
+    internal static async Task<JsonObject> Json(HttpResponseMessage response) => (await response.Content.ReadFromJsonAsync<JsonObject>(Ct))!;
 
     [Fact(DisplayName = "A01 Validate returns every issue with a field, code and suggestion")]
     public async Task Validate_reports_actionable_issues()
@@ -141,7 +149,45 @@ public sealed class AssistantApiTests
         (await Json(forbidden))["code"]!.GetValue<string>().ShouldBe("FORBIDDEN");
 
         var someoneElse = h.Assistant.ClientFor("user99@example.test");
-        (await someoneElse.GetAsync($"/v1/requisition-requests/{id}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        var notYours = await someoneElse.GetAsync($"/v1/requisition-requests/{id}", Ct);
+        notYours.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await Json(notYours))["code"]!.GetValue<string>().ShouldBe("NOT_YOUR_REQUISITION");
+
+        var delegated = h.Assistant.ClientFor("buyer@example.test", "requisitions:read", "requisitions:read:all");
+        (await delegated.GetAsync($"/v1/requisition-requests/{id}", Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await someoneElse.GetAsync("/v1/requisition-requests/REQ-0000-404", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact(DisplayName = "A10 Create needs the user's confirmation of exactly this request")]
+    public async Task Confirmation_is_bound_to_the_request()
+    {
+        await using var h = new SyncHarness();
+        var client = h.Assistant.ClientFor(User);
+
+        var unconfirmed = await CreateAsync(client, ValidRequest(), confirm: false);
+        unconfirmed.StatusCode.ShouldBe(HttpStatusCode.PreconditionRequired);
+        (await Json(unconfirmed))["code"]!.GetValue<string>().ShouldBe("CONFIRMATION_REQUIRED");
+
+        var validated = await Json(await client.PostAsJsonAsync("/v1/requisition-requests:validate", ValidRequest(), Ct));
+        validated["confirmationSummary"]!.GetValue<string>().ShouldContain("2 EA Laptop 14-inch");
+        var token = validated["confirmationToken"]!.GetValue<string>();
+
+        // The assistant quietly changes the quantity after the user said yes.
+        var changed = new HttpRequestMessage(HttpMethod.Post, "/v1/requisition-requests") { Content = JsonContent.Create(ValidRequest(laptops: 3)) };
+        changed.Headers.Add("Idempotency-Key", "key-2");
+        changed.Headers.Add("X-User-Confirmation", token);
+        var mismatch = await client.SendAsync(changed, Ct);
+        mismatch.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
+        (await Json(mismatch))["code"]!.GetValue<string>().ShouldBe("CONFIRMATION_MISMATCH");
+
+        // Another user's token does not fit either.
+        var other = new HttpRequestMessage(HttpMethod.Post, "/v1/requisition-requests") { Content = JsonContent.Create(ValidRequest()) };
+        other.Headers.Add("Idempotency-Key", "key-3");
+        other.Headers.Add("X-User-Confirmation", token);
+        (await h.Assistant.ClientFor("other@example.test").SendAsync(other, Ct)).StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
+
+        var mine = await client.GetFromJsonAsync<JsonObject>("/v1/requisition-requests?limit=50", Ct);
+        mine!["items"]!.AsArray().Count.ShouldBe(0, "nothing was created");
     }
 
     [Fact(DisplayName = "A06 Withdraw needs the current ETag and only works before approval")]

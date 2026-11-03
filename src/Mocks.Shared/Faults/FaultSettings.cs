@@ -26,6 +26,9 @@ public sealed record FaultSettings
     /// <summary>SAP mock only: when false, Idempotency-Key is ignored, like a real SAP endpoint.</summary>
     public bool HonorIdempotencyKey { get; init; } = true;
 
+    /// <summary>SAP mock only: queries by ExternalReference return nothing, as when a search index lags behind writes.</summary>
+    public bool ReferenceSearchLag { get; init; }
+
     /// <summary>Seed for the random generator so chaos runs are reproducible.</summary>
     public int Seed { get; init; } = 1234;
 }

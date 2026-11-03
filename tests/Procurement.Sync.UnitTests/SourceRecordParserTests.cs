@@ -121,4 +121,32 @@ public sealed class SourceRecordParserTests
         Parse(Valid, o => o["totalAmount"] = 2400.01m).Item2.ShouldBeEmpty();
         Parse(Valid, o => o["totalAmount"] = 2500m).Item2.ShouldHaveSingleItem().Reason.ShouldBe(QuarantineReason.TotalMismatch);
     }
+
+    [Fact]
+    public void A_zero_total_is_reported_as_not_positive_rather_than_as_a_mismatch()
+    {
+        var (_, problems) = Parse(Valid, o => o["totalAmount"] = 0);
+
+        problems.Select(p => p.Reason).ShouldBe([QuarantineReason.AmountNotPositive]);
+        problems[0].Message.ShouldStartWith("Total amount must be greater than zero");
+    }
+
+    [Fact]
+    public void A_blank_needed_by_date_is_a_missing_required_field()
+    {
+        var (_, problems) = Parse(Valid, o => o["neededBy"] = null);
+
+        var problem = problems.ShouldHaveSingleItem();
+        problem.Reason.ShouldBe(QuarantineReason.MissingRequiredField);
+        problem.Field.ShouldBe("neededBy");
+    }
+
+    [Fact]
+    public void Qatari_riyal_and_the_tax_code_are_accepted()
+    {
+        var (req, problems) = Parse(Valid, o => { o["currency"] = "QAR"; Line(o)["taxCode"] = "Z0"; });
+
+        problems.ShouldBeEmpty();
+        req!.Lines.Single().TaxCode.ShouldBe("Z0");
+    }
 }

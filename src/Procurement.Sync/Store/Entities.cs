@@ -118,6 +118,8 @@ public enum RunEventKind
     Extracted, Staged, Unchanged, Ignored, Quarantined, QuarantineResolved,
     Created, AlreadyInSap, Amended, InDoubt, InDoubtResolved, RetryScheduled, RetryExhausted,
     StatusChanged, StatusIgnored, WrittenBack, Conflict, SourceChangedAfterTransfer,
+    /// <summary>SAP refused a stale version; the requisition was re-read from the source before resending.</summary>
+    VersionRefreshed,
 }
 
 public sealed class RunEvent
@@ -127,6 +129,8 @@ public sealed class RunEvent
     public required string SourceKey { get; set; }
     public RunEventKind Kind { get; set; }
     public string? Detail { get; set; }
+    /// <summary>HTTP status of each SAP write attempt behind this event, comma-separated (0 = no response).</summary>
+    public string? SapResponses { get; set; }
     public DateTime At { get; set; }
 }
 

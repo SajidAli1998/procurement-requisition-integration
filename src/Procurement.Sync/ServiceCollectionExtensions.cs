@@ -29,8 +29,11 @@ public static class ServiceCollectionExtensions
 
         services.AddHttpClient<SourceClient>((sp, http) => Configure(sp, http, o => o.SourceBaseUrl))
             .AddSyncResilience("source");
+        services.AddTransient<SapAttemptRecorder>();
         services.AddHttpClient<SapClient>((sp, http) => Configure(sp, http, o => o.SapBaseUrl))
-            .AddSyncResilience("sap");
+            .AddSyncResilience("sap")
+            // Added after the resilience handler, so it runs inside it and sees each individual attempt.
+            .AddHttpMessageHandler<SapAttemptRecorder>();
 
         services.AddTransient<ExtractStage>();
         services.AddTransient<DispatchStage>();

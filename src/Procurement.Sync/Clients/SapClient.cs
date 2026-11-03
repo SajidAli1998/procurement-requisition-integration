@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Polly.CircuitBreaker;
+using Procurement.Sync.Http;
 
 namespace Procurement.Sync.Clients;
 
@@ -19,6 +20,10 @@ public enum SapCallStatus
     Locked,
     /// <summary>409 for an Idempotency-Key whose first request is still running.</summary>
     InProgress,
+    /// <summary>409: SAP already holds a requisition for this reference (<see cref="SapCall{T}.ExistingDocument"/>).</summary>
+    Duplicate,
+    /// <summary>409: SAP knows a newer source version than the one sent (<see cref="SapCall{T}.CurrentVersion"/>).</summary>
+    VersionConflict,
     /// <summary>429/5xx persisted through all transport retries.</summary>
     Transient,
     /// <summary>No response for a write: it may or may not have been applied.</summary>
@@ -29,6 +34,12 @@ public enum SapCallStatus
 public sealed record SapCall<T>(SapCallStatus Status, T? Value = default, string? ETag = null, string? Error = null, int? HttpStatus = null)
 {
     public bool IsSuccess => Status is SapCallStatus.Ok or SapCallStatus.Created or SapCallStatus.Replayed;
+
+    /// <summary>For writes: the HTTP status of every attempt the transport made (0 = no response), retries included.</summary>
+    public IReadOnlyList<int> Attempts { get; init; } = [];
+
+    public string? ExistingDocument { get; init; }
+    public long? CurrentVersion { get; init; }
 }
 
 /// <summary>Typed client for the SAP purchase requisition service. Translates HTTP outcomes into <see cref="SapCallStatus"/>.</summary>
@@ -72,6 +83,13 @@ public sealed class SapClient(HttpClient http)
 
     private async Task<SapCall<T>> SendAsync<T>(HttpRequestMessage request, bool isWrite, CancellationToken ct)
     {
+        var attempts = SapAttemptRecorder.Track(request);
+        var call = await SendCoreAsync<T>(request, isWrite, ct);
+        return call with { Attempts = attempts.ToArray() };
+    }
+
+    private async Task<SapCall<T>> SendCoreAsync<T>(HttpRequestMessage request, bool isWrite, CancellationToken ct)
+    {
         try
         {
             using var response = await http.SendAsync(request, ct);
@@ -90,18 +108,24 @@ public sealed class SapClient(HttpClient http)
                 return new SapCall<T>(outcome, value, etag, HttpStatus: status);
             }
 
-            var (code, message) = await ReadErrorAsync(response, ct);
+            var (code, message, inner) = await ReadErrorAsync(response, ct);
             var mapped = response.StatusCode switch
             {
                 HttpStatusCode.NotFound => SapCallStatus.NotFound,
                 HttpStatusCode.PreconditionFailed => SapCallStatus.PreconditionFailed,
                 HttpStatusCode.Conflict when code == "IDEMPOTENCY/IN_PROGRESS" => SapCallStatus.InProgress,
+                HttpStatusCode.Conflict when code == "DUPLICATE_REFERENCE" => SapCallStatus.Duplicate,
+                HttpStatusCode.Conflict when code == "VERSION_CONFLICT" => SapCallStatus.VersionConflict,
                 HttpStatusCode.Conflict => SapCallStatus.Locked,
                 HttpStatusCode.TooManyRequests or HttpStatusCode.RequestTimeout => SapCallStatus.Transient,
                 _ when status >= 500 => SapCallStatus.Transient,
                 _ => SapCallStatus.Rejected,
             };
-            return new SapCall<T>(mapped, default, etag, message ?? $"HTTP {status}", status);
+            return new SapCall<T>(mapped, default, etag, message ?? $"HTTP {status}", status)
+            {
+                ExistingDocument = inner is { } e && e.TryGetProperty("existingDocument", out var doc) && doc.ValueKind == JsonValueKind.String ? doc.GetString() : null,
+                CurrentVersion = inner is { } c && c.TryGetProperty("currentVersion", out var v) && v.TryGetInt64(out var n) ? n : null,
+            };
         }
         catch (BrokenCircuitException ex)
         {
@@ -118,7 +142,7 @@ public sealed class SapClient(HttpClient http)
         }
     }
 
-    private static async Task<(string? Code, string? Message)> ReadErrorAsync(HttpResponseMessage response, CancellationToken ct)
+    private static async Task<(string? Code, string? Message, JsonElement? Inner)> ReadErrorAsync(HttpResponseMessage response, CancellationToken ct)
     {
         try
         {
@@ -127,14 +151,15 @@ public sealed class SapClient(HttpClient http)
             {
                 var code = error.TryGetProperty("code", out var c) ? c.GetString() : null;
                 var message = error.TryGetProperty("message", out var m) && m.TryGetProperty("value", out var v) ? v.GetString() : null;
-                return (code, message);
+                JsonElement? inner = error.TryGetProperty("innererror", out var i) && i.ValueKind == JsonValueKind.Object ? i.Clone() : null;
+                return (code, message, inner);
             }
-            if (body.TryGetProperty("title", out var title)) return (null, title.GetString());
+            if (body.TryGetProperty("title", out var title)) return (null, title.GetString(), null);
         }
         catch (JsonException)
         {
         }
-        return (null, null);
+        return (null, null, null);
     }
 
     private sealed record ODataCollection

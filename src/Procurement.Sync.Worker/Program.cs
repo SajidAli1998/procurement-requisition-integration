@@ -127,11 +127,54 @@ reconcile.SetAction((_, ct) => WithServices(async (services, token) =>
     return report.Invariants.Any(i => i.Outcome == InvariantOutcome.Fail) ? 1 : 0;
 }, ct));
 
+// procsync check-expected [--report reports/latest.json]
+var reportPath = new Option<string?>("--report") { Description = "Report JSON to check (default: latest.json in the report directory)" };
+var checkExpected = new Command("check-expected",
+    "Assessment data only: compare a run's per-requisition outcomes with the client's Reconciliation_Expected sheet. Use the report of the first run over the workbook.") { reportPath };
+checkExpected.SetAction((parse, ct) => WithServices(async (services, token) =>
+{
+    var directory = services.GetRequiredService<Microsoft.Extensions.Options.IOptions<Procurement.Sync.SyncOptions>>().Value.ReportDirectory;
+    var path = parse.GetValue(reportPath) ?? Path.Combine(directory, "latest.json");
+    using var json = System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(path, token));
+    if (!json.RootElement.TryGetProperty("records", out var records))
+    {
+        Console.WriteLine($"{path} has no per-requisition outcomes (written by an older version); run a sync first.");
+        return 2;
+    }
+    var actual = records.EnumerateArray().ToDictionary(r => r.GetProperty("key").GetString()!);
+    var expected = Procurement.SyntheticData.DataPack.Load().ReconciliationExpected;
+
+    var mismatches = new List<string>();
+    foreach (var e in expected)
+    {
+        if (!actual.TryGetValue(e.RequisitionId, out var a)) { mismatches.Add($"{e.RequisitionId}: not in the report"); continue; }
+        string? Str(string name) => a.GetProperty(name).ValueKind == System.Text.Json.JsonValueKind.Null ? null : a.GetProperty(name).ToString();
+        foreach (var (column, want, got) in new[]
+        {
+            ("Source_Version", e.SourceVersion.ToString(), Str("sourceVersion")),
+            ("Processing_Result", e.ProcessingResult, Str("result")),
+            ("Remote_Document_ID", e.RemoteDocumentId, Str("sapNumber")),
+            ("Attempts", e.Attempts.ToString(), Str("attempts")),
+            ("Failure_Category", e.FailureCategory, Str("failureCategory")),
+        })
+        {
+            if (want != got) mismatches.Add($"{e.RequisitionId} {column}: expected {want ?? "(blank)"}, got {got ?? "(blank)"}");
+        }
+    }
+
+    var matching = expected.Count - mismatches.Select(m => m.Split(' ')[0]).Distinct().Count();
+    Console.WriteLine($"{matching} of {expected.Count} rows of Reconciliation_Expected match {path}");
+    Console.WriteLine("  compared: Source_Version, Processing_Result, Remote_Document_ID, Attempts, Failure_Category");
+    foreach (var m in mismatches.Take(40)) Console.WriteLine($"  {m}");
+    return mismatches.Count == 0 ? 0 : 1;
+}, ct));
+
 root.Subcommands.Add(run);
 root.Subcommands.Add(serve);
 root.Subcommands.Add(status);
 root.Subcommands.Add(quarantine);
 root.Subcommands.Add(reconcile);
+root.Subcommands.Add(checkExpected);
 return await root.Parse(args).InvokeAsync();
 
 static async Task<int> WithServices(Func<IServiceProvider, CancellationToken, Task<int>> action, CancellationToken ct)

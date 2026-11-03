@@ -26,9 +26,17 @@ flowchart LR
 |---|---|
 | Integration service, mock source API, mock SAP-style service, AI-facing API contract (implemented, so it can be tested), synthetic data | Real SAP connectivity, approval workflow, the AI assistant itself, any UI |
 
+**Data.** By default the mocks serve the client's synthetic data pack, read straight from the Excel workbook ([`data/README.md`](../data/README.md), [ADR-0009](adr/0009-client-data-pack.md)). A generated 250-record set is kept for stress and edge-case tests.
+
 The mocks behave like awkward real systems on purpose:
 - The **source** pages through changes and versions every record with ETags. It serves malformed records exactly as a flawed upstream would.
-- The **SAP mock** follows SAP's purchase requisition API shapes: field names, `to_PurchaseReqnItem`, the SAP error envelope, a 10-digit number, release and processing status codes. It allows duplicate external references, as SAP does, and refuses content changes once a requisition is released.
+- The **SAP mock** follows SAP's purchase requisition API shapes: field names, `to_PurchaseReqnItem`, the SAP error envelope, release and processing status codes, and refusing content changes once a requisition is released. With the workbook it also acts as the client's mock remote:
+  - it uses the workbook's document numbers (`MOCK-SAP-5xxxx`);
+  - it already holds seven documents;
+  - it plays the workbook's failure schedule (`429` with `Retry-After: 20`, `503`, and `409` for a stale version);
+  - it answers a second create for the same reference with `409` and the existing document id.
+
+  With the generated set it allows duplicate references, as real SAP does.
 - **Both** can inject `503`s, `429`s with `Retry-After`, latency and lost responses, and both have real token-bucket rate limiting.
 
 ## 2. Components
@@ -36,10 +44,11 @@ The mocks behave like awkward real systems on purpose:
 | Component | Responsibility |
 |---|---|
 | `Procurement.Sync` | The integration: typed HTTP clients with resilience pipelines, pipeline stages, EF Core state store, reconciliation reporting |
-| `Procurement.Sync.Worker` | `procsync` CLI (`run`, `serve`, `status`, `quarantine …`, `reconcile`) and the scheduled worker |
+| `Procurement.Sync.Worker` | `procsync` CLI (`run`, `serve`, `status`, `quarantine …`, `reconcile`, `check-expected`) and the scheduled worker |
 | `Procurement.AssistantApi` | AI-facing API: validate, create draft, read status, withdraw, reference data |
 | `Procurement.Contracts` | Canonical model shared by the integration and the assistant API: `Requisition`, `ErpStatus`, `QuarantineReason` |
 | `Mocks.SourceApi`, `Mocks.SapApi`, `Mocks.Shared` | The two external systems and their shared fault injection |
+| `Procurement.SyntheticData` | Reads the client's workbook (Open XML SDK) and the employee directory; used by the mocks, the Assistant API's catalogue and the tests, never by the integration |
 
 The mocks do **not** share types with the integration. Each side has its own wire model, so a mismatch in field names or shapes shows up in the tests, as it would against real systems.
 
@@ -142,6 +151,8 @@ sequenceDiagram
 
 Layer 3 is the one that would still work against a real SAP, which doesn't support `Idempotency-Key`. A mock test proves why it matters: with key support switched off, a blind retry after a lost response **does** create a duplicate (`Without_idempotency_support_a_blind_retry_creates_a_duplicate`).
 
+**If SAP still answers "duplicate".** The client's mock remote answers a create for a reference it already holds with `409 DUPLICATE_REFERENCE` and the existing document id. The integration reads that document and links to it, exactly as if the lookup had found it (W05, where SAP's search is made to lag).
+
 Two details make this hold in practice:
 - **The transport never repeats a POST on an unknown outcome.** Only `429`/`503` are retried for POST, because those mean the server did nothing. Timeouts, resets and `5xx` on a POST are handed back to the pipeline as `Ambiguous`.
 - **Content is compared before amending.** The integration's own status write-back bumps the source version without changing content. After a loss of local state, "SAP holds v2, source is v3" would otherwise trigger a pointless `PATCH`. Scenario S05 caught this.
@@ -159,6 +170,8 @@ The [reconciliation report](#8-quarantine-and-reconciliation) then *proves* the 
 | Source down mid-read | Exception from paging | Keep pages already committed; dispatch what was staged; next run resumes from the checkpoint | S03 |
 | Persistent transient failure | Attempt counter | Exponential `RetryPending` delay; quarantine `RetryExhausted` after 5 attempts; `replay` once SAP is healthy | S21 |
 | SAP `4xx` business error | Status + SAP error body | Quarantine `SapRejectedPermanent` with SAP's message; never retried | S01 |
+| SAP `409` duplicate reference | Error code + existing document id | Read and link the existing document; nothing created | W05 |
+| SAP `409` version conflict on create | Error code + current version | Re-read the requisition from the source, validate it, resend once; quarantine `VersionConflictUnresolved` if SAP still refuses | W01 |
 | Malformed record | Parser and validator | Quarantine with every problem and its field path; other records unaffected | S01 |
 | Crash mid-send | `Sending` state at startup | `InDoubt` → re-check SAP | (by construction; S15 covers the re-check) |
 | Two runs at once | Lease row (conditional update) | Second run exits with code 3 | S17 |
@@ -173,6 +186,7 @@ Retry policy lives in two places, deliberately:
 
 | Situation | Response | Test |
 |---|---|---|
+| Source edited while a create is in flight; SAP knows the newer version | `409 VERSION_CONFLICT` → re-read the source (the owner of content), send the newer version once | W01 (`REQ-7002`: v2 refused, v3 created) |
 | Source content changes, SAP PR still `Created`/`InRelease` | `PATCH` with `If-Match`; on `412` re-read SAP and decide again (up to 3 times) | S11 |
 | Source content changes after SAP release | SAP refuses changes, so: quarantine `VersionConflictUnresolved` with instructions; SAP keeps the earlier valid version | S13 |
 | Source cancelled after transfer | Quarantine `SourceChangedAfterTransfer` so a person cancels the SAP PR; never auto-cancelled | S14 |
@@ -205,9 +219,20 @@ The report also contains:
 - where every record stands;
 - each open failure with a plain-English suggested action;
 - notable events;
-- records waiting for retry.
+- records waiting for retry;
+- **one row per requisition** the run touched. Each row gives:
+  - the result (`Created`, `Duplicate`, `Updated`, `Quarantined`, `Skipped`, `Pending`, `Unchanged`);
+  - the SAP document;
+  - the number of SAP attempts, including transport retries;
+  - a failure category (`Validation`, `Idempotency`, `Version conflict`, `Rate limit`, `Transient service`, `Lost response`, `Not approved`);
+  - a one-line explanation, such as "Created after two rate-limit responses as MOCK-SAP-50003".
 
-See [`reports/sample/chaos-run.md`](../reports/sample/chaos-run.md).
+  The columns match the client's `Reconciliation_Expected` sheet, and the rows are also written as CSV for Excel. Attempts are counted by a handler inside the resilience pipeline, so it sees every retry.
+
+Samples:
+- [`workbook-first-run.md`](../reports/sample/workbook-first-run.md), the client's data: all 120 rows match `Reconciliation_Expected`;
+- [`chaos-run-generated.md`](../reports/sample/chaos-run-generated.md), the generated set under random failures;
+- [`after-demo-reconcile.md`](../reports/sample/after-demo-reconcile.md).
 
 ## 9. Status synchronisation
 
@@ -232,7 +257,8 @@ The contract is described in [`api/README.md`](../api/README.md). The design fol
 - **Draft-only writes.** Requests are created as `PendingApproval`. The assistant can withdraw its own pending drafts but can never approve, release or order anything.
 - **No invented data.** Codes must come from the reference endpoints, and prices come from the catalogue: the assistant sends material codes and quantities only. Unknown fields, quoted numbers and anything over the limits are rejected, and the published schema says so (`additionalProperties: false`, min/max).
 - **Safe retries.** `Idempotency-Key` is required. The same key and body replay the first response; a different body is `422`. The API also looks the request up in the source before creating, so a lost response cannot create a second draft (A08).
-- **Identity and scope.** User-delegated JWTs with the scopes `requisitions:read` and `requisitions:draft`. Users only see their own requests (others' return `404`). Rate limits apply per user.
+- **Identity and scope.** User-delegated JWTs with the scopes `requisitions:read`, `requisitions:draft` and `requisitions:read:all` (delegated procurement role). Users see their own requests; someone else's returns `403 NOT_YOUR_REQUISITION`, as the client's contract tests specify. Rate limits apply per user.
+- **The user confirms exactly what is created.** `validate` returns a plain-language `confirmationSummary` and a `confirmationToken` bound to the user and the exact request. Create requires that token in `X-User-Confirmation`. A request changed after the user agreed is refused with `CONFIRMATION_MISMATCH`.
 - **Errors an agent can act on.** RFC 9457 problem details with a stable `code`, `retryable`, `retryAfter`, `invalidFields[]` (each with a suggestion) and `suggestedAction`.
 - **Status the assistant can relay as written.** A closed `RequestStatus`, plus a `statusReason`, `nextExpectedStep` and a timeline.
 - **Tool hints.** Every operation carries `x-mcp` hints (`readOnlyHint`, `idempotentHint`, `destructiveHint`) and an `operationId`. [`mcp-tools.json`](../api/mcp-tools.json) is generated from them. Only `withdrawRequisitionRequest` is destructive, which tells an MCP client to ask the user first.
@@ -256,7 +282,7 @@ The contract is described in [`api/README.md`](../api/README.md). The design fol
 | Concern | Here | In production |
 |---|---|---|
 | SAP connectivity | OData-style mock | `API_PURCHASEREQUISITION_2` (OData V4) or `API_PURCHASEREQ_PROCESS_SRV` (V2), with the `x-csrf-token: fetch` handshake, `$batch` for lookups and creates, and OAuth 2.0 / X.509 via SAP BTP. Alternatively SAP Integration Suite or the Azure Logic Apps SAP connector. |
-| Duplicate lookup | One `GET` per create (368 calls for 184 creates) | One batched `$filter=ExternalReference in (…)` per page |
+| Duplicate lookup | One `GET` per create | One batched `$filter=ExternalReference in (…)` per page |
 | Store | SQLite, `EnsureCreated` | SQL Server / Azure SQL (provider switch already in place) with EF migration bundles ([ADR-0003](adr/0003-sqlite-default-sql-server-ready.md)) |
 | Queue | Outbox drained in-process | Outbox relay to Azure Service Bus or RabbitMQ; competing consumers, sessions keyed by requisition id ([ADR-0004](adr/0004-transactional-outbox.md)) |
 | Scale-out | One runner holds a lease | Partition by company code; `READPAST`/`UPDLOCK` work queues or Service Bus sessions; the lease becomes per partition |
@@ -268,5 +294,6 @@ The contract is described in [`api/README.md`](../api/README.md). The design fol
 
 - The SAP mock is SAP-*style*. Field names and codes follow the public API, but behaviour is simplified: there is one status pair per header, and no account assignment or texts.
 - Reference data (currencies, units, plants, catalogue prices) is static and synthetic. In production it would be cached from master data.
+- The client's workbook leaves some things open (company code and plant, who owns which requisition, how a version conflict comes about). The assumptions are listed in [`data/README.md`](../data/README.md#assumptions-and-questions-for-the-client).
 - Status sync relies on SAP's change timestamps. A system that rewrites history without touching `LastChangeDateTime` would need a periodic full comparison; the reconciliation scan already provides the building block.
 - The Assistant API keeps idempotency keys in memory. They survive retries but not a restart; [ADR-0007](adr/0007-ai-assistant-api-safety.md) records the trade-off.

@@ -1,0 +1,2990 @@
+{
+  "runId": "run-20261103-070536-719675e9b",
+  "trigger": "cli",
+  "startedAt": "2026-11-03T07:05:36.510564Z",
+  "generatedAt": "2026-11-03T07:06:26.676488Z",
+  "status": "Completed",
+  "message": null,
+  "runCounts": {
+    "Extracted": 254,
+    "Staged": 190,
+    "Unchanged": 4,
+    "Ignored": 43,
+    "Quarantined": 23,
+    "Created": 181,
+    "InDoubt": 3,
+    "InDoubtResolved": 3,
+    "WrittenBack": 184
+  },
+  "stateTotals": {
+    "Ignored": 43,
+    "Synced": 184,
+    "Quarantined": 23
+  },
+  "transport": {
+    "sap.retries": 68,
+    "sap.throttled": 26
+  },
+  "retryWaitSeconds": 46.1,
+  "invariants": [
+    {
+      "name": "Every approved requisition is accounted for",
+      "outcome": "Pass",
+      "detail": "207 approved: 184 Synced, 23 Quarantined."
+    },
+    {
+      "name": "No duplicate requisitions in SAP",
+      "outcome": "Pass",
+      "detail": "184 SAP requisitions, each with a unique external reference."
+    },
+    {
+      "name": "Every synced requisition exists in SAP",
+      "outcome": "Pass",
+      "detail": "All 184 linked SAP numbers found."
+    },
+    {
+      "name": "Every SAP requisition is linked to a source requisition",
+      "outcome": "Pass",
+      "detail": "No unlinked SAP requisitions."
+    },
+    {
+      "name": "Amounts match between source and SAP",
+      "outcome": "Pass",
+      "detail": "EUR 918,779.53 in 101; USD 821,094.87 in 83."
+    },
+    {
+      "name": "Source shows the current SAP status",
+      "outcome": "Pass",
+      "detail": "All ERP statuses are written back to the source."
+    }
+  ],
+  "totals": [
+    {
+      "currency": "EUR",
+      "localCount": 101,
+      "localAmount": 918779.53,
+      "sapCount": 101,
+      "sapAmount": 918779.53,
+      "matches": true
+    },
+    {
+      "currency": "USD",
+      "localCount": 83,
+      "localAmount": 821094.87,
+      "sapCount": 83,
+      "sapAmount": 821094.87,
+      "matches": true
+    }
+  ],
+  "openFailures": [
+    {
+      "key": "REQ-2026-000029",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "InvalidQuantity",
+      "summary": "Line 10: quantity -5 must be greater than zero",
+      "suggestedAction": "Correct the line quantity (must be greater than zero) in the source system.",
+      "firstSeen": "2026-11-03T07:05:36.81501Z",
+      "lastSeen": "2026-11-03T07:05:36.81501Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000171",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "InvalidQuantity",
+      "summary": "Line 10: quantity -5 must be greater than zero",
+      "suggestedAction": "Correct the line quantity (must be greater than zero) in the source system.",
+      "firstSeen": "2026-11-03T07:05:36.880572Z",
+      "lastSeen": "2026-11-03T07:05:36.880572Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000014",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingLines",
+      "summary": "Requisition has no lines",
+      "suggestedAction": "Add at least one line to the requisition in the source system.",
+      "firstSeen": "2026-11-03T07:05:36.918071Z",
+      "lastSeen": "2026-11-03T07:05:36.918071Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000158",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingLines",
+      "summary": "Requisition has no lines",
+      "suggestedAction": "Add at least one line to the requisition in the source system.",
+      "firstSeen": "2026-11-03T07:05:36.682598Z",
+      "lastSeen": "2026-11-03T07:05:36.682598Z",
+      "occurrences": 1
+    },
+    {
+      "key": "NOID-C9A925B92E6F2F70",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "id is missing",
+      "suggestedAction": "The source sent a requisition without an id. Raise with the source system owner; it cannot be matched or transferred.",
+      "firstSeen": "2026-11-03T07:05:36.842529Z",
+      "lastSeen": "2026-11-03T07:05:36.842529Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000116",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "requester is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:05:36.928136Z",
+      "lastSeen": "2026-11-03T07:05:36.928136Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000076",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "NeededByInPast",
+      "summary": "neededBy 2026-10-24 is in the past",
+      "suggestedAction": "Move the needed-by date to today or later in the source system.",
+      "firstSeen": "2026-11-03T07:05:36.610958Z",
+      "lastSeen": "2026-11-03T07:05:36.610958Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000216",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "NeededByInPast",
+      "summary": "neededBy 2026-10-24 is in the past",
+      "suggestedAction": "Move the needed-by date to today or later in the source system.",
+      "firstSeen": "2026-11-03T07:05:36.889214Z",
+      "lastSeen": "2026-11-03T07:05:36.889214Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000008",
+      "version": 3,
+      "stage": "Load",
+      "reason": "SapRejectedPermanent",
+      "summary": "SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000",
+      "suggestedAction": "Correct the data SAP rejected (see summary) in the source, or fix the SAP configuration, then run: procsync quarantine replay REQ-2026-000008",
+      "firstSeen": "2026-11-03T07:05:50.321959Z",
+      "lastSeen": "2026-11-03T07:05:50.321959Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000060",
+      "version": 2,
+      "stage": "Load",
+      "reason": "SapRejectedPermanent",
+      "summary": "SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000",
+      "suggestedAction": "Correct the data SAP rejected (see summary) in the source, or fix the SAP configuration, then run: procsync quarantine replay REQ-2026-000060",
+      "firstSeen": "2026-11-03T07:05:38.448467Z",
+      "lastSeen": "2026-11-03T07:05:38.448467Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000107",
+      "version": 2,
+      "stage": "Load",
+      "reason": "SapRejectedPermanent",
+      "summary": "SAP rejected the requisition: Item 00010: plant 2100 is not assigned to company code 1000",
+      "suggestedAction": "Correct the data SAP rejected (see summary) in the source, or fix the SAP configuration, then run: procsync quarantine replay REQ-2026-000107",
+      "firstSeen": "2026-11-03T07:05:42.162957Z",
+      "lastSeen": "2026-11-03T07:05:42.162957Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000151",
+      "version": 3,
+      "stage": "Load",
+      "reason": "SapRejectedPermanent",
+      "summary": "SAP rejected the requisition: Item 00010: plant 2100 is not assigned to company code 1000",
+      "suggestedAction": "Correct the data SAP rejected (see summary) in the source, or fix the SAP configuration, then run: procsync quarantine replay REQ-2026-000151",
+      "firstSeen": "2026-11-03T07:05:39.462972Z",
+      "lastSeen": "2026-11-03T07:05:39.462972Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000203",
+      "version": 1,
+      "stage": "Load",
+      "reason": "SapRejectedPermanent",
+      "summary": "SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000",
+      "suggestedAction": "Correct the data SAP rejected (see summary) in the source, or fix the SAP configuration, then run: procsync quarantine replay REQ-2026-000203",
+      "firstSeen": "2026-11-03T07:05:45.1598Z",
+      "lastSeen": "2026-11-03T07:05:45.1598Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000250",
+      "version": 2,
+      "stage": "Load",
+      "reason": "SapRejectedPermanent",
+      "summary": "SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000",
+      "suggestedAction": "Correct the data SAP rejected (see summary) in the source, or fix the SAP configuration, then run: procsync quarantine replay REQ-2026-000250",
+      "firstSeen": "2026-11-03T07:05:49.161189Z",
+      "lastSeen": "2026-11-03T07:05:49.161189Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000090",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "SchemaInvalid",
+      "summary": "lines[0].quantity must be a number, got String \u0022ten\u0022",
+      "suggestedAction": "Correct the field named in the summary in the source system; the next run picks up the corrected version automatically.",
+      "firstSeen": "2026-11-03T07:05:36.716093Z",
+      "lastSeen": "2026-11-03T07:05:36.716093Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000129",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "SchemaInvalid",
+      "summary": "neededBy \u002731/02/2026\u0027 is not a valid yyyy-MM-dd date",
+      "suggestedAction": "Correct the field named in the summary in the source system; the next run picks up the corrected version automatically.",
+      "firstSeen": "2026-11-03T07:05:36.921038Z",
+      "lastSeen": "2026-11-03T07:05:36.921038Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000228",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "SchemaInvalid",
+      "summary": "lines[0].quantity must be a number, got String \u0022ten\u0022",
+      "suggestedAction": "Correct the field named in the summary in the source system; the next run picks up the corrected version automatically.",
+      "firstSeen": "2026-11-03T07:05:36.819307Z",
+      "lastSeen": "2026-11-03T07:05:36.819307Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000103",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "TotalMismatch",
+      "summary": "totalAmount 4288.96 does not equal the sum of the lines (4188.96)",
+      "suggestedAction": "Recalculate the header total so it equals the sum of the lines.",
+      "firstSeen": "2026-11-03T07:05:36.91596Z",
+      "lastSeen": "2026-11-03T07:05:36.91596Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000245",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "TotalMismatch",
+      "summary": "totalAmount 7466.67 does not equal the sum of the lines (7366.67)",
+      "suggestedAction": "Recalculate the header total so it equals the sum of the lines.",
+      "firstSeen": "2026-11-03T07:05:36.831027Z",
+      "lastSeen": "2026-11-03T07:05:36.831027Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000045",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "UnknownCurrency",
+      "summary": "Currency \u0027XYZ\u0027 is not a supported ISO 4217 code",
+      "suggestedAction": "Use a supported ISO 4217 currency, or add the currency to the integration\u0027s reference data if it is genuinely new.",
+      "firstSeen": "2026-11-03T07:05:36.897888Z",
+      "lastSeen": "2026-11-03T07:05:36.897888Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000188",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "UnknownCurrency",
+      "summary": "Currency \u0027XYZ\u0027 is not a supported ISO 4217 code",
+      "suggestedAction": "Use a supported ISO 4217 currency, or add the currency to the integration\u0027s reference data if it is genuinely new.",
+      "firstSeen": "2026-11-03T07:05:36.799329Z",
+      "lastSeen": "2026-11-03T07:05:36.799329Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000061",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "UnknownUnitOfMeasure",
+      "summary": "Line 10: unit of measure \u0027BUCKET\u0027 is not recognised",
+      "suggestedAction": "Use a supported unit of measure, or add it to the reference data if it is genuinely new.",
+      "firstSeen": "2026-11-03T07:05:36.760604Z",
+      "lastSeen": "2026-11-03T07:05:36.760604Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-2026-000204",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "UnknownUnitOfMeasure",
+      "summary": "Line 10: unit of measure \u0027BUCKET\u0027 is not recognised",
+      "suggestedAction": "Use a supported unit of measure, or add it to the reference data if it is genuinely new.",
+      "firstSeen": "2026-11-03T07:05:36.693939Z",
+      "lastSeen": "2026-11-03T07:05:36.693939Z",
+      "occurrences": 1
+    }
+  ],
+  "notableChanges": [
+    {
+      "key": "REQ-2026-000076",
+      "kind": "Quarantined",
+      "detail": "NeededByInPast: neededBy 2026-10-24 is in the past"
+    },
+    {
+      "key": "REQ-2026-000158",
+      "kind": "Quarantined",
+      "detail": "MissingLines: Requisition has no lines"
+    },
+    {
+      "key": "REQ-2026-000204",
+      "kind": "Quarantined",
+      "detail": "UnknownUnitOfMeasure: Line 10: unit of measure \u0027BUCKET\u0027 is not recognised"
+    },
+    {
+      "key": "REQ-2026-000090",
+      "kind": "Quarantined",
+      "detail": "SchemaInvalid: lines[0].quantity must be a number, got String \u0022ten\u0022"
+    },
+    {
+      "key": "REQ-2026-000061",
+      "kind": "Quarantined",
+      "detail": "UnknownUnitOfMeasure: Line 10: unit of measure \u0027BUCKET\u0027 is not recognised"
+    },
+    {
+      "key": "REQ-2026-000188",
+      "kind": "Quarantined",
+      "detail": "UnknownCurrency: Currency \u0027XYZ\u0027 is not a supported ISO 4217 code"
+    },
+    {
+      "key": "REQ-2026-000029",
+      "kind": "Quarantined",
+      "detail": "InvalidQuantity: Line 10: quantity -5 must be greater than zero"
+    },
+    {
+      "key": "REQ-2026-000228",
+      "kind": "Quarantined",
+      "detail": "SchemaInvalid: lines[0].quantity must be a number, got String \u0022ten\u0022"
+    },
+    {
+      "key": "REQ-2026-000245",
+      "kind": "Quarantined",
+      "detail": "TotalMismatch: totalAmount 7466.67 does not equal the sum of the lines (7366.67)"
+    },
+    {
+      "key": "NOID-C9A925B92E6F2F70",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: id is missing"
+    },
+    {
+      "key": "REQ-2026-000171",
+      "kind": "Quarantined",
+      "detail": "InvalidQuantity: Line 10: quantity -5 must be greater than zero"
+    },
+    {
+      "key": "REQ-2026-000216",
+      "kind": "Quarantined",
+      "detail": "NeededByInPast: neededBy 2026-10-24 is in the past"
+    },
+    {
+      "key": "REQ-2026-000045",
+      "kind": "Quarantined",
+      "detail": "UnknownCurrency: Currency \u0027XYZ\u0027 is not a supported ISO 4217 code"
+    },
+    {
+      "key": "REQ-2026-000103",
+      "kind": "Quarantined",
+      "detail": "TotalMismatch: totalAmount 4288.96 does not equal the sum of the lines (4188.96)"
+    },
+    {
+      "key": "REQ-2026-000014",
+      "kind": "Quarantined",
+      "detail": "MissingLines: Requisition has no lines"
+    },
+    {
+      "key": "REQ-2026-000129",
+      "kind": "Quarantined",
+      "detail": "SchemaInvalid: neededBy \u002731/02/2026\u0027 is not a valid yyyy-MM-dd date"
+    },
+    {
+      "key": "REQ-2026-000116",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: requester is missing"
+    },
+    {
+      "key": "REQ-2026-000060",
+      "kind": "Quarantined",
+      "detail": "SapRejectedPermanent: SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000"
+    },
+    {
+      "key": "REQ-2026-000151",
+      "kind": "Quarantined",
+      "detail": "SapRejectedPermanent: SAP rejected the requisition: Item 00010: plant 2100 is not assigned to company code 1000"
+    },
+    {
+      "key": "REQ-2026-000107",
+      "kind": "Quarantined",
+      "detail": "SapRejectedPermanent: SAP rejected the requisition: Item 00010: plant 2100 is not assigned to company code 1000"
+    },
+    {
+      "key": "REQ-2026-000027",
+      "kind": "InDoubt",
+      "detail": "HttpRequestException: An error occurred while sending the request."
+    },
+    {
+      "key": "REQ-2026-000027",
+      "kind": "InDoubtResolved",
+      "detail": "Response was lost; SAP PR 0010000062 found on re-check"
+    },
+    {
+      "key": "REQ-2026-000203",
+      "kind": "Quarantined",
+      "detail": "SapRejectedPermanent: SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000"
+    },
+    {
+      "key": "REQ-2026-000012",
+      "kind": "InDoubt",
+      "detail": "HttpRequestException: An error occurred while sending the request."
+    },
+    {
+      "key": "REQ-2026-000012",
+      "kind": "InDoubtResolved",
+      "detail": "Response was lost; SAP PR 0010000074 found on re-check"
+    },
+    {
+      "key": "REQ-2026-000250",
+      "kind": "Quarantined",
+      "detail": "SapRejectedPermanent: SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000"
+    },
+    {
+      "key": "REQ-2026-000008",
+      "kind": "Quarantined",
+      "detail": "SapRejectedPermanent: SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000"
+    },
+    {
+      "key": "REQ-2026-000002",
+      "kind": "InDoubt",
+      "detail": "HttpRequestException: An error occurred while sending the request."
+    },
+    {
+      "key": "REQ-2026-000002",
+      "kind": "InDoubtResolved",
+      "detail": "Response was lost; SAP PR 0010000162 found on re-check"
+    }
+  ],
+  "pending": [],
+  "excludedFromTotals": 0,
+  "records": [
+    {
+      "key": "NOID-C9A925B92E6F2F70",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "id is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000001",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000099",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000099",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000002",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000162",
+      "attempts": 1,
+      "failureCategory": "Lost response",
+      "explanation": "Created after one transient failure and after a lost response was confirmed by lookup as 0010000162",
+      "sapResponses": "0"
+    },
+    {
+      "key": "REQ-2026-000003",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000004",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000082",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000082",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000005",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000171",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000171",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000006",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000131",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000131",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000007",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000006",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000006",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000008",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Rejected by SAP",
+      "explanation": "SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000",
+      "sapResponses": "400"
+    },
+    {
+      "key": "REQ-2026-000009",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000159",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000159",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000010",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000150",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000150",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000011",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Draft",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000012",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000074",
+      "attempts": 2,
+      "failureCategory": "Lost response",
+      "explanation": "Created after two transient failures and after a lost response was confirmed by lookup as 0010000074",
+      "sapResponses": "503,0"
+    },
+    {
+      "key": "REQ-2026-000013",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000101",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000101",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000014",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Requisition has no lines",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000015",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000030",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000030",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000016",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Cancelled",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000017",
+      "sourceVersion": 3,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000018",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000067",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000067",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000019",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000116",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000116",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000020",
+      "sourceVersion": 3,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Draft",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000021",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000002",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000002",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000022",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000090",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000090",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000023",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000042",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000042",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000024",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000120",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000120",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000025",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000078",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000078",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000026",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000077",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000077",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000027",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000062",
+      "attempts": 1,
+      "failureCategory": "Lost response",
+      "explanation": "Created after one transient failure and after a lost response was confirmed by lookup as 0010000062",
+      "sapResponses": "0"
+    },
+    {
+      "key": "REQ-2026-000028",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000011",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000011",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000029",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Line 10: quantity -5 must be greater than zero",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000030",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000061",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000061",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000031",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000172",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000172",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000032",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000152",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000152",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000033",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000115",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000115",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000034",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000130",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000130",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000035",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Rejected",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000036",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000020",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000020",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000037",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000089",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000089",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000038",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000051",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000051",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000039",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000118",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000118",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000040",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Draft",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000041",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000180",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000180",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000042",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000145",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000145",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000043",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Rejected",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000044",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000045",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Currency \u0027XYZ\u0027 is not a supported ISO 4217 code",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000046",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000068",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000068",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000047",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000144",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000144",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000048",
+      "sourceVersion": 3,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Rejected",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000049",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000050",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000167",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000167",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000051",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000048",
+      "attempts": 3,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after one rate-limit response and after one transient failure as 0010000048",
+      "sapResponses": "429,503,201"
+    },
+    {
+      "key": "REQ-2026-000052",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000040",
+      "attempts": 2,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after one rate-limit response as 0010000040",
+      "sapResponses": "429,201"
+    },
+    {
+      "key": "REQ-2026-000053",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Rejected",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000054",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000050",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000050",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000055",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Cancelled",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000056",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000036",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000036",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000057",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000151",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000151",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000058",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000043",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000043",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000059",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000063",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000063",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000060",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 3,
+      "failureCategory": "Rejected by SAP",
+      "explanation": "SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000",
+      "sapResponses": "503,503,400"
+    },
+    {
+      "key": "REQ-2026-000061",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Line 10: unit of measure \u0027BUCKET\u0027 is not recognised",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000062",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000163",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000163",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000063",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000064",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000029",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000029",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000065",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000100",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000100",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000066",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000148",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000148",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000067",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000153",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000153",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000068",
+      "sourceVersion": 3,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000069",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000049",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000049",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000070",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000047",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000047",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000071",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000014",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000014",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000072",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000046",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000046",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000073",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000039",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000039",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000074",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000017",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000017",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000075",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Cancelled",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000076",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy 2026-10-24 is in the past",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000077",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000146",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000146",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000078",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000058",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000058",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000079",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000135",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000135",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000080",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000139",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000139",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000081",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000008",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000008",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000082",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Rejected",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000083",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000027",
+      "attempts": 2,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after one rate-limit response as 0010000027",
+      "sapResponses": "429,201"
+    },
+    {
+      "key": "REQ-2026-000084",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000132",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000132",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000085",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000057",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000057",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000086",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000149",
+      "attempts": 2,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after one rate-limit response as 0010000149",
+      "sapResponses": "429,201"
+    },
+    {
+      "key": "REQ-2026-000087",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000174",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000174",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000088",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000102",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000102",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000089",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Cancelled",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000090",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "lines[0].quantity must be a number, got String \u0022ten\u0022",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000091",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000095",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000095",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000092",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000110",
+      "attempts": 2,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after one rate-limit response as 0010000110",
+      "sapResponses": "429,201"
+    },
+    {
+      "key": "REQ-2026-000093",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000181",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000181",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000094",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000094",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000094",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000095",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000107",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000107",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000096",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000154",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000154",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000097",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000134",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000134",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000098",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000106",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000106",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000099",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000184",
+      "attempts": 3,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after two rate-limit responses as 0010000184",
+      "sapResponses": "429,429,201"
+    },
+    {
+      "key": "REQ-2026-000100",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000101",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000166",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000166",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000102",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000141",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000141",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000103",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "totalAmount 4288.96 does not equal the sum of the lines (4188.96)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000104",
+      "sourceVersion": 3,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Rejected",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000105",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000129",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000129",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000106",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000133",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000133",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000107",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Rejected by SAP",
+      "explanation": "SAP rejected the requisition: Item 00010: plant 2100 is not assigned to company code 1000",
+      "sapResponses": "400"
+    },
+    {
+      "key": "REQ-2026-000108",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000028",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000028",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000109",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000155",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000155",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000110",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000022",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000022",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000111",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000121",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000121",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000112",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000092",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000092",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000113",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000018",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000018",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000114",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000142",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000142",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000115",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000009",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000009",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000116",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "requester is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000117",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000123",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000123",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000118",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000119",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000105",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000105",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000120",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000156",
+      "attempts": 2,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after one rate-limit response as 0010000156",
+      "sapResponses": "429,201"
+    },
+    {
+      "key": "REQ-2026-000121",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000179",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000179",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000122",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000081",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000081",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000123",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000175",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000175",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000124",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000044",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000044",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000125",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000137",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000137",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000126",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000168",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000168",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000127",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000031",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000031",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000128",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000059",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000059",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000129",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy \u002731/02/2026\u0027 is not a valid yyyy-MM-dd date",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000130",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000001",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000001",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000131",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000103",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000103",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000132",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000005",
+      "attempts": 2,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after one rate-limit response as 0010000005",
+      "sapResponses": "429,201"
+    },
+    {
+      "key": "REQ-2026-000133",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000021",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000021",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000134",
+      "sourceVersion": 3,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Rejected",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000135",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000010",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000010",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000136",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000045",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000045",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000137",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Cancelled",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000138",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000114",
+      "attempts": 3,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after two rate-limit responses as 0010000114",
+      "sapResponses": "429,429,201"
+    },
+    {
+      "key": "REQ-2026-000139",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000119",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000119",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000140",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000141",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000086",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000086",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000142",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000125",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000125",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000143",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000084",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000084",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000145",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000158",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000158",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000146",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000096",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000096",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000147",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000019",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000019",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000148",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000104",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000104",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000149",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000113",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000113",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000150",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000083",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000083",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000151",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Rejected by SAP",
+      "explanation": "SAP rejected the requisition: Item 00010: plant 2100 is not assigned to company code 1000",
+      "sapResponses": "400"
+    },
+    {
+      "key": "REQ-2026-000152",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Rejected",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000153",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000088",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000088",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000154",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Draft",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000155",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000007",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000007",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000156",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000173",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000173",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000157",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000075",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000075",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000158",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Requisition has no lines",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000159",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000170",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000170",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000160",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000124",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000124",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000161",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Draft",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000162",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000108",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000108",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000163",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000140",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000140",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000164",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000053",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000053",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000165",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000023",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000023",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000166",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000065",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000065",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000167",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000080",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000080",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000168",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000066",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000066",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000169",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000091",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000091",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000170",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000136",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000136",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000171",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Line 10: quantity -5 must be greater than zero",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000172",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Cancelled",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000173",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000041",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000041",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000174",
+      "sourceVersion": 3,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Rejected",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000175",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Cancelled",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000176",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000143",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000143",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000177",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000178",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000069",
+      "attempts": 2,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after one rate-limit response as 0010000069",
+      "sapResponses": "429,201"
+    },
+    {
+      "key": "REQ-2026-000179",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000012",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000012",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000180",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000025",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000025",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000181",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000122",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000122",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000182",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000079",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000079",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000183",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000033",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000033",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000184",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000056",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000056",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000185",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000087",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000087",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000186",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000112",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000112",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000187",
+      "sourceVersion": 3,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Rejected",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000188",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Currency \u0027XYZ\u0027 is not a supported ISO 4217 code",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000189",
+      "sourceVersion": 3,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000190",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Draft",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000191",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000037",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000037",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000192",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000064",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000064",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000193",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000034",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000034",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000194",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000111",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000111",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000195",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000052",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000052",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000196",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000178",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000178",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000197",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000147",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000147",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000198",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000015",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000015",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000199",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Rejected",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000200",
+      "sourceVersion": 3,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000201",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000164",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000164",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000202",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000157",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000157",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000203",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Rejected by SAP",
+      "explanation": "SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000",
+      "sapResponses": "400"
+    },
+    {
+      "key": "REQ-2026-000204",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Line 10: unit of measure \u0027BUCKET\u0027 is not recognised",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000205",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000071",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000071",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000206",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000055",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000055",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000207",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000127",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000127",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000208",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000004",
+      "attempts": 2,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after one rate-limit response as 0010000004",
+      "sapResponses": "429,201"
+    },
+    {
+      "key": "REQ-2026-000209",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000093",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000093",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000210",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000128",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000128",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000211",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000097",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000097",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000212",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000117",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000117",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000213",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000038",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000038",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000214",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000013",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000013",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000215",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000165",
+      "attempts": 2,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after one rate-limit response as 0010000165",
+      "sapResponses": "429,201"
+    },
+    {
+      "key": "REQ-2026-000216",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy 2026-10-24 is in the past",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000217",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000072",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000072",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000218",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000098",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000098",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000219",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000177",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000177",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000220",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000073",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000073",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000221",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000060",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000060",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000222",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000076",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000076",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000223",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000054",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000054",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000224",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000182",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000182",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000225",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000160",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000160",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000226",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000109",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000109",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000227",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000176",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000176",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000228",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "lines[0].quantity must be a number, got String \u0022ten\u0022",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000229",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000035",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000035",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000230",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000126",
+      "attempts": 2,
+      "failureCategory": "Transient service",
+      "explanation": "Created after one transient failure as 0010000126",
+      "sapResponses": "503,201"
+    },
+    {
+      "key": "REQ-2026-000231",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000183",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000183",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000232",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000169",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000169",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000233",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000003",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000003",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000234",
+      "sourceVersion": 3,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Rejected",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000235",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000024",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000024",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000236",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000026",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000026",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000237",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000238",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Rejected",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000239",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000138",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000138",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000240",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000070",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000070",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000241",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000085",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000085",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000242",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Rejected",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000243",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "0010000161",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000161",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000244",
+      "sourceVersion": 3,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000245",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "totalAmount 7466.67 does not equal the sum of the lines (7366.67)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000246",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Draft",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000247",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "0010000032",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000032",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000248",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is Cancelled",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-2026-000249",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "0010000016",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as 0010000016",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-2026-000250",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Rejected by SAP",
+      "explanation": "SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000",
+      "sapResponses": "400"
+    }
+  ],
+  "outcomes": {
+    "Created": 184,
+    "Quarantined": 23,
+    "Skipped": 43
+  }
+}

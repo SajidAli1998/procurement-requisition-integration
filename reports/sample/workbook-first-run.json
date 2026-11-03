@@ -1,0 +1,2084 @@
+{
+  "runId": "run-20261103-070336-7fd75f2e2",
+  "trigger": "cli",
+  "startedAt": "2026-11-03T07:03:37.05725Z",
+  "generatedAt": "2026-11-03T07:04:48.895028Z",
+  "status": "Completed",
+  "message": null,
+  "runCounts": {
+    "Extracted": 120,
+    "Staged": 72,
+    "Ignored": 5,
+    "Quarantined": 50,
+    "Created": 58,
+    "AlreadyInSap": 7,
+    "WrittenBack": 65,
+    "VersionRefreshed": 7
+  },
+  "stateTotals": {
+    "Ignored": 5,
+    "Synced": 65,
+    "Quarantined": 50
+  },
+  "transport": {
+    "sap.retries": 28,
+    "sap.throttled": 14
+  },
+  "retryWaitSeconds": 286.38,
+  "invariants": [
+    {
+      "name": "Every approved requisition is accounted for",
+      "outcome": "Pass",
+      "detail": "115 approved: 65 Synced, 50 Quarantined."
+    },
+    {
+      "name": "No duplicate requisitions in SAP",
+      "outcome": "Pass",
+      "detail": "65 SAP requisitions, each with a unique external reference."
+    },
+    {
+      "name": "Every synced requisition exists in SAP",
+      "outcome": "Pass",
+      "detail": "All 65 linked SAP numbers found."
+    },
+    {
+      "name": "Every SAP requisition is linked to a source requisition",
+      "outcome": "Pass",
+      "detail": "No unlinked SAP requisitions."
+    },
+    {
+      "name": "Amounts match between source and SAP",
+      "outcome": "Pass",
+      "detail": "QAR 3,881,360.00 in 65."
+    },
+    {
+      "name": "Source shows the current SAP status",
+      "outcome": "Pass",
+      "detail": "All ERP statuses are written back to the source."
+    }
+  ],
+  "totals": [
+    {
+      "currency": "QAR",
+      "localCount": 65,
+      "localAmount": 3881360,
+      "sapCount": 65,
+      "sapAmount": 3881360,
+      "matches": true
+    }
+  ],
+  "openFailures": [
+    {
+      "key": "REQ-7071",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.310648Z",
+      "lastSeen": "2026-11-03T07:03:37.310648Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7073",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.323403Z",
+      "lastSeen": "2026-11-03T07:03:37.323403Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7075",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.324768Z",
+      "lastSeen": "2026-11-03T07:03:37.324768Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7077",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.325936Z",
+      "lastSeen": "2026-11-03T07:03:37.325936Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7079",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.327154Z",
+      "lastSeen": "2026-11-03T07:03:37.327154Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7081",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.341253Z",
+      "lastSeen": "2026-11-03T07:03:37.341253Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7083",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.341849Z",
+      "lastSeen": "2026-11-03T07:03:37.341849Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7085",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.342298Z",
+      "lastSeen": "2026-11-03T07:03:37.342298Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7087",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.342772Z",
+      "lastSeen": "2026-11-03T07:03:37.342772Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7089",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.343295Z",
+      "lastSeen": "2026-11-03T07:03:37.343295Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7091",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.343877Z",
+      "lastSeen": "2026-11-03T07:03:37.343877Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7093",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.344498Z",
+      "lastSeen": "2026-11-03T07:03:37.344498Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7095",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.345166Z",
+      "lastSeen": "2026-11-03T07:03:37.345166Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7097",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.345906Z",
+      "lastSeen": "2026-11-03T07:03:37.345906Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7099",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.346685Z",
+      "lastSeen": "2026-11-03T07:03:37.346685Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7101",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.347521Z",
+      "lastSeen": "2026-11-03T07:03:37.347521Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7103",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.352588Z",
+      "lastSeen": "2026-11-03T07:03:37.352588Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7105",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.353525Z",
+      "lastSeen": "2026-11-03T07:03:37.353525Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7107",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.3545Z",
+      "lastSeen": "2026-11-03T07:03:37.3545Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7109",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.35551Z",
+      "lastSeen": "2026-11-03T07:03:37.35551Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7111",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.356596Z",
+      "lastSeen": "2026-11-03T07:03:37.356596Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7113",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.357703Z",
+      "lastSeen": "2026-11-03T07:03:37.357703Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7115",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.358859Z",
+      "lastSeen": "2026-11-03T07:03:37.358859Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7117",
+      "version": 1,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.360064Z",
+      "lastSeen": "2026-11-03T07:03:37.360064Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7119",
+      "version": 3,
+      "stage": "Validate",
+      "reason": "AmountNotPositive",
+      "summary": "Total amount must be greater than zero (got 0)",
+      "suggestedAction": "Enter the approved total amount (greater than zero) in the source system; the next run picks it up.",
+      "firstSeen": "2026-11-03T07:03:37.361327Z",
+      "lastSeen": "2026-11-03T07:03:37.361327Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7072",
+      "version": 4,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.319621Z",
+      "lastSeen": "2026-11-03T07:03:37.319621Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7074",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.324188Z",
+      "lastSeen": "2026-11-03T07:03:37.324188Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7076",
+      "version": 4,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.325355Z",
+      "lastSeen": "2026-11-03T07:03:37.325355Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7078",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.326548Z",
+      "lastSeen": "2026-11-03T07:03:37.326548Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7080",
+      "version": 4,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.327784Z",
+      "lastSeen": "2026-11-03T07:03:37.327784Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7082",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.341617Z",
+      "lastSeen": "2026-11-03T07:03:37.341617Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7084",
+      "version": 4,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.342072Z",
+      "lastSeen": "2026-11-03T07:03:37.342072Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7086",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.342536Z",
+      "lastSeen": "2026-11-03T07:03:37.342536Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7088",
+      "version": 4,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.343033Z",
+      "lastSeen": "2026-11-03T07:03:37.343033Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7090",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.343583Z",
+      "lastSeen": "2026-11-03T07:03:37.343583Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7092",
+      "version": 4,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.344187Z",
+      "lastSeen": "2026-11-03T07:03:37.344187Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7094",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.344833Z",
+      "lastSeen": "2026-11-03T07:03:37.344833Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7096",
+      "version": 4,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.345525Z",
+      "lastSeen": "2026-11-03T07:03:37.345525Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7098",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.346297Z",
+      "lastSeen": "2026-11-03T07:03:37.346297Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7100",
+      "version": 4,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.347107Z",
+      "lastSeen": "2026-11-03T07:03:37.347107Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7102",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.347958Z",
+      "lastSeen": "2026-11-03T07:03:37.347958Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7104",
+      "version": 4,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.353059Z",
+      "lastSeen": "2026-11-03T07:03:37.353059Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7106",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.354016Z",
+      "lastSeen": "2026-11-03T07:03:37.354016Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7108",
+      "version": 4,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.355007Z",
+      "lastSeen": "2026-11-03T07:03:37.355007Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7110",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.356064Z",
+      "lastSeen": "2026-11-03T07:03:37.356064Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7112",
+      "version": 4,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.357152Z",
+      "lastSeen": "2026-11-03T07:03:37.357152Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7114",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.35828Z",
+      "lastSeen": "2026-11-03T07:03:37.35828Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7116",
+      "version": 4,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.359463Z",
+      "lastSeen": "2026-11-03T07:03:37.359463Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7118",
+      "version": 2,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.360691Z",
+      "lastSeen": "2026-11-03T07:03:37.360691Z",
+      "occurrences": 1
+    },
+    {
+      "key": "REQ-7120",
+      "version": 4,
+      "stage": "Validate",
+      "reason": "MissingRequiredField",
+      "summary": "neededBy is missing",
+      "suggestedAction": "Fill in the missing field in the source system; the next run picks it up automatically.",
+      "firstSeen": "2026-11-03T07:03:37.361989Z",
+      "lastSeen": "2026-11-03T07:03:37.361989Z",
+      "occurrences": 1
+    }
+  ],
+  "notableChanges": [
+    {
+      "key": "REQ-7071",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7072",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7073",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7074",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7075",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7076",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7077",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7078",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7079",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7080",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7081",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7082",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7083",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7084",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7085",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7086",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7087",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7088",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7089",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7090",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7091",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7092",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7093",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7094",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7095",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7096",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7097",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7098",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7099",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7100",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7101",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7102",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7103",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7104",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7105",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7106",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7107",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7108",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7109",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7110",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7111",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7112",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7113",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7114",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7115",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7116",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7117",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7118",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    },
+    {
+      "key": "REQ-7119",
+      "kind": "Quarantined",
+      "detail": "AmountNotPositive: Total amount must be greater than zero (got 0)"
+    },
+    {
+      "key": "REQ-7120",
+      "kind": "Quarantined",
+      "detail": "MissingRequiredField: neededBy is missing"
+    }
+  ],
+  "pending": [],
+  "excludedFromTotals": 0,
+  "records": [
+    {
+      "key": "REQ-7001",
+      "sourceVersion": 1,
+      "result": "Duplicate",
+      "sapNumber": "MOCK-SAP-50001",
+      "attempts": 1,
+      "failureCategory": "Idempotency",
+      "explanation": "Already in SAP as MOCK-SAP-50001: existing document linked and not created again",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7002",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50002",
+      "attempts": 2,
+      "failureCategory": "Version conflict",
+      "explanation": "Created after version refresh (v2 \u2192 v3) as MOCK-SAP-50002",
+      "sapResponses": "409,201"
+    },
+    {
+      "key": "REQ-7003",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50003",
+      "attempts": 3,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after two rate-limit responses as MOCK-SAP-50003",
+      "sapResponses": "429,429,201"
+    },
+    {
+      "key": "REQ-7004",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50004",
+      "attempts": 3,
+      "failureCategory": "Transient service",
+      "explanation": "Created after two transient failures as MOCK-SAP-50004",
+      "sapResponses": "503,503,201"
+    },
+    {
+      "key": "REQ-7005",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50005",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50005",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7006",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50006",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50006",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7007",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50007",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50007",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7008",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50008",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50008",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7009",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50009",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50009",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7010",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50010",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50010",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7011",
+      "sourceVersion": 3,
+      "result": "Duplicate",
+      "sapNumber": "MOCK-SAP-50011",
+      "attempts": 1,
+      "failureCategory": "Idempotency",
+      "explanation": "Already in SAP as MOCK-SAP-50011: existing document linked and not created again",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7012",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50012",
+      "attempts": 2,
+      "failureCategory": "Version conflict",
+      "explanation": "Created after version refresh (v4 \u2192 v5) as MOCK-SAP-50012",
+      "sapResponses": "409,201"
+    },
+    {
+      "key": "REQ-7013",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50013",
+      "attempts": 3,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after two rate-limit responses as MOCK-SAP-50013",
+      "sapResponses": "429,429,201"
+    },
+    {
+      "key": "REQ-7014",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50014",
+      "attempts": 3,
+      "failureCategory": "Transient service",
+      "explanation": "Created after two transient failures as MOCK-SAP-50014",
+      "sapResponses": "503,503,201"
+    },
+    {
+      "key": "REQ-7015",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50015",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50015",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7016",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50016",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50016",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7017",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50017",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50017",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7018",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50018",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50018",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7019",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50019",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50019",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7020",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50020",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50020",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7021",
+      "sourceVersion": 1,
+      "result": "Duplicate",
+      "sapNumber": "MOCK-SAP-50021",
+      "attempts": 1,
+      "failureCategory": "Idempotency",
+      "explanation": "Already in SAP as MOCK-SAP-50021: existing document linked and not created again",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7022",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50022",
+      "attempts": 2,
+      "failureCategory": "Version conflict",
+      "explanation": "Created after version refresh (v2 \u2192 v3) as MOCK-SAP-50022",
+      "sapResponses": "409,201"
+    },
+    {
+      "key": "REQ-7023",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50023",
+      "attempts": 3,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after two rate-limit responses as MOCK-SAP-50023",
+      "sapResponses": "429,429,201"
+    },
+    {
+      "key": "REQ-7024",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50024",
+      "attempts": 3,
+      "failureCategory": "Transient service",
+      "explanation": "Created after two transient failures as MOCK-SAP-50024",
+      "sapResponses": "503,503,201"
+    },
+    {
+      "key": "REQ-7025",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50025",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50025",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7026",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50026",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50026",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7027",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50027",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50027",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7028",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50028",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50028",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7029",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50029",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50029",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7030",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50030",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50030",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7031",
+      "sourceVersion": 3,
+      "result": "Duplicate",
+      "sapNumber": "MOCK-SAP-50031",
+      "attempts": 1,
+      "failureCategory": "Idempotency",
+      "explanation": "Already in SAP as MOCK-SAP-50031: existing document linked and not created again",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7032",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50032",
+      "attempts": 2,
+      "failureCategory": "Version conflict",
+      "explanation": "Created after version refresh (v4 \u2192 v5) as MOCK-SAP-50032",
+      "sapResponses": "409,201"
+    },
+    {
+      "key": "REQ-7033",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50033",
+      "attempts": 3,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after two rate-limit responses as MOCK-SAP-50033",
+      "sapResponses": "429,429,201"
+    },
+    {
+      "key": "REQ-7034",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50034",
+      "attempts": 3,
+      "failureCategory": "Transient service",
+      "explanation": "Created after two transient failures as MOCK-SAP-50034",
+      "sapResponses": "503,503,201"
+    },
+    {
+      "key": "REQ-7035",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50035",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50035",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7036",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50036",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50036",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7037",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50037",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50037",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7038",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50038",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50038",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7039",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50039",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50039",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7040",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50040",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50040",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7041",
+      "sourceVersion": 1,
+      "result": "Duplicate",
+      "sapNumber": "MOCK-SAP-50041",
+      "attempts": 1,
+      "failureCategory": "Idempotency",
+      "explanation": "Already in SAP as MOCK-SAP-50041: existing document linked and not created again",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7042",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50042",
+      "attempts": 2,
+      "failureCategory": "Version conflict",
+      "explanation": "Created after version refresh (v2 \u2192 v3) as MOCK-SAP-50042",
+      "sapResponses": "409,201"
+    },
+    {
+      "key": "REQ-7043",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50043",
+      "attempts": 3,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after two rate-limit responses as MOCK-SAP-50043",
+      "sapResponses": "429,429,201"
+    },
+    {
+      "key": "REQ-7044",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50044",
+      "attempts": 3,
+      "failureCategory": "Transient service",
+      "explanation": "Created after two transient failures as MOCK-SAP-50044",
+      "sapResponses": "503,503,201"
+    },
+    {
+      "key": "REQ-7045",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50045",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50045",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7046",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50046",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50046",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7047",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50047",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50047",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7048",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50048",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50048",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7049",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50049",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50049",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7050",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50050",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50050",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7051",
+      "sourceVersion": 3,
+      "result": "Duplicate",
+      "sapNumber": "MOCK-SAP-50051",
+      "attempts": 1,
+      "failureCategory": "Idempotency",
+      "explanation": "Already in SAP as MOCK-SAP-50051: existing document linked and not created again",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7052",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50052",
+      "attempts": 2,
+      "failureCategory": "Version conflict",
+      "explanation": "Created after version refresh (v4 \u2192 v5) as MOCK-SAP-50052",
+      "sapResponses": "409,201"
+    },
+    {
+      "key": "REQ-7053",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50053",
+      "attempts": 3,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after two rate-limit responses as MOCK-SAP-50053",
+      "sapResponses": "429,429,201"
+    },
+    {
+      "key": "REQ-7054",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50054",
+      "attempts": 3,
+      "failureCategory": "Transient service",
+      "explanation": "Created after two transient failures as MOCK-SAP-50054",
+      "sapResponses": "503,503,201"
+    },
+    {
+      "key": "REQ-7055",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50055",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50055",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7056",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50056",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50056",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7057",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50057",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50057",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7058",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50058",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50058",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7059",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50059",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50059",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7060",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50060",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50060",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7061",
+      "sourceVersion": 1,
+      "result": "Duplicate",
+      "sapNumber": "MOCK-SAP-50061",
+      "attempts": 1,
+      "failureCategory": "Idempotency",
+      "explanation": "Already in SAP as MOCK-SAP-50061: existing document linked and not created again",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7062",
+      "sourceVersion": 2,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50062",
+      "attempts": 2,
+      "failureCategory": "Version conflict",
+      "explanation": "Created after version refresh (v2 \u2192 v3) as MOCK-SAP-50062",
+      "sapResponses": "409,201"
+    },
+    {
+      "key": "REQ-7063",
+      "sourceVersion": 3,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50063",
+      "attempts": 3,
+      "failureCategory": "Rate limit",
+      "explanation": "Created after two rate-limit responses as MOCK-SAP-50063",
+      "sapResponses": "429,429,201"
+    },
+    {
+      "key": "REQ-7064",
+      "sourceVersion": 4,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50064",
+      "attempts": 3,
+      "failureCategory": "Transient service",
+      "explanation": "Created after two transient failures as MOCK-SAP-50064",
+      "sapResponses": "503,503,201"
+    },
+    {
+      "key": "REQ-7065",
+      "sourceVersion": 1,
+      "result": "Created",
+      "sapNumber": "MOCK-SAP-50065",
+      "attempts": 1,
+      "failureCategory": "None",
+      "explanation": "Created successfully as MOCK-SAP-50065",
+      "sapResponses": "201"
+    },
+    {
+      "key": "REQ-7066",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7067",
+      "sourceVersion": 3,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7068",
+      "sourceVersion": 4,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7069",
+      "sourceVersion": 1,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7070",
+      "sourceVersion": 2,
+      "result": "Skipped",
+      "sapNumber": null,
+      "attempts": 0,
+      "failureCategory": "Not approved",
+      "explanation": "Source approval status is PendingApproval",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7071",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7072",
+      "sourceVersion": 4,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7073",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7074",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7075",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7076",
+      "sourceVersion": 4,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7077",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7078",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7079",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7080",
+      "sourceVersion": 4,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7081",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7082",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7083",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7084",
+      "sourceVersion": 4,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7085",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7086",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7087",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7088",
+      "sourceVersion": 4,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7089",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7090",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7091",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7092",
+      "sourceVersion": 4,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7093",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7094",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7095",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7096",
+      "sourceVersion": 4,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7097",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7098",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7099",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7100",
+      "sourceVersion": 4,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7101",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7102",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7103",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7104",
+      "sourceVersion": 4,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7105",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7106",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7107",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7108",
+      "sourceVersion": 4,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7109",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7110",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7111",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7112",
+      "sourceVersion": 4,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7113",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7114",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7115",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7116",
+      "sourceVersion": 4,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7117",
+      "sourceVersion": 1,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7118",
+      "sourceVersion": 2,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7119",
+      "sourceVersion": 3,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "Total amount must be greater than zero (got 0)",
+      "sapResponses": ""
+    },
+    {
+      "key": "REQ-7120",
+      "sourceVersion": 4,
+      "result": "Quarantined",
+      "sapNumber": null,
+      "attempts": 1,
+      "failureCategory": "Validation",
+      "explanation": "neededBy is missing",
+      "sapResponses": ""
+    }
+  ],
+  "outcomes": {
+    "Created": 58,
+    "Duplicate": 7,
+    "Quarantined": 50,
+    "Skipped": 5
+  }
+}

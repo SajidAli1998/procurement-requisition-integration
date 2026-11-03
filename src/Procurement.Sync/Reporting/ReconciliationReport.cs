@@ -40,4 +40,10 @@ public sealed record ReconciliationReport
     public required IReadOnlyList<ChangeRow> NotableChanges { get; init; }
     public required IReadOnlyList<PendingRow> Pending { get; init; }
     public int ExcludedFromTotals { get; init; }
+
+    /// <summary>Per requisition touched by this run: result, attempts, failure category and explanation.</summary>
+    public IReadOnlyList<RecordOutcome> Records { get; init; } = [];
+
+    /// <summary><see cref="Records"/> counted by result.</summary>
+    public IReadOnlyDictionary<string, int> Outcomes => Records.GroupBy(r => r.Result).OrderBy(g => g.Key).ToDictionary(g => g.Key, g => g.Count());
 }

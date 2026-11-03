@@ -21,7 +21,7 @@ Before amending, content is compared rather than version numbers. The integratio
 
 ## Consequences
 - **Duplicates are prevented in every failure mode tested:** lost responses (with and without key support), timeouts, crash mid-send, page overlap, reruns, and a wiped local database (S02, S04, S05, S12, S15).
-- **Lookups double the SAP calls for new records** (368 vs 184 for the seed set). Batching lookups per page with `$filter=ExternalReference in (...)` removes most of that cost and is the first optimisation to make.
+- **Lookups double the SAP calls for new records** (368 vs 184 for the generated data set). Batching lookups per page with `$filter=ExternalReference in (...)` removes most of that cost and is the first optimisation to make.
 - **The reconciliation report independently proves** there are no duplicates by scanning SAP.
 
 ## Alternatives considered

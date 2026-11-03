@@ -50,6 +50,7 @@ public sealed class SapRequisitionItem
     public string Plant { get; set; } = "";
     public string CompanyCode { get; set; } = "";
     public string PurchasingGroup { get; set; } = "";
+    public string? TaxCode { get; set; }
     public DateOnly DeliveryDate { get; set; }
     public string? PurchaseOrder { get; set; }
 }
@@ -81,5 +82,6 @@ public sealed record PurchaseRequisitionItemInput
     public string? Plant { get; init; }
     public string? CompanyCode { get; init; }
     public string? PurchasingGroup { get; init; }
+    public string? TaxCode { get; init; }
     public DateOnly? DeliveryDate { get; init; }
 }

@@ -16,6 +16,7 @@ using Procurement.AssistantApi.Infrastructure;
 using Procurement.AssistantApi.Model;
 using Procurement.AssistantApi.Services;
 using Procurement.Sync.Store;
+using Procurement.SyntheticData;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +29,11 @@ builder.Services.AddSingleton(auth);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IdempotencyStore>();
 builder.Services.AddSingleton<RequestValidator>();
+// The catalogue follows the data set the source system serves: the client's workbook, or our generated one.
+builder.Services.AddSingleton(builder.Configuration.GetValue("Dataset:Source", "Workbook") == "Generated"
+    ? ReferenceCatalogue.Generated()
+    : ReferenceCatalogue.FromWorkbook(DataPack.Load(builder.Configuration["Dataset:WorkbookPath"])));
+builder.Services.AddSingleton(_ => EmployeeDirectory.Load(builder.Configuration["Dataset:DirectoryPath"]));
 builder.Services.AddSyncStore(builder.Configuration);
 builder.Services.AddTransient<StatusComposer>();
 builder.Services.AddHttpClient<SourceRequisitionsClient>((sp, http) =>
@@ -110,21 +116,24 @@ var viewJson = new JsonSerializerOptions(JsonSerializerDefaults.Web) { Converter
 
 var v1 = app.MapGroup("/v1").RequireRateLimiting("per-user");
 
-v1.MapPost("/requisition-requests:validate", async (HttpRequest request, RequestValidator validator) =>
+v1.MapPost("/requisition-requests:validate", async (HttpRequest request, ClaimsPrincipal user, RequestValidator validator, AuthOptions auth) =>
     {
         var (body, _, error) = await ReadStrictAsync<CreateRequisitionRequest>(request);
-        return error ?? Results.Ok(validator.Validate(body!));
+        if (error is not null) return error;
+        var result = validator.Validate(body!);
+        return Results.Ok(result.Valid ? result with { ConfirmationToken = Confirmations.Issue(auth, user.FindFirstValue("sub")!, body!) } : result);
     })
     .RequireAuthorization(Scopes.Draft)
     .WithMetadata(new AgentToolHints("validateRequisitionRequest", ReadOnly: true, Idempotent: true, Destructive: false, Scopes.Draft))
     .WithSummary("Check a draft request without creating anything")
-    .WithDescription("Returns every problem with its field, code and a suggestion, plus the estimated total at catalogue prices. Call this before createRequisitionRequest.")
+    .WithDescription("Returns every problem with its field, code and a suggestion, plus the estimated total at catalogue prices. When valid, also returns confirmationSummary to show the user and confirmationToken to send on create once they agree. Call this before createRequisitionRequest.")
     .Accepts<CreateRequisitionRequest>("application/json")
     .Produces<ValidationResult>()
     .ProducesProblem(400);
 
 v1.MapPost("/requisition-requests", async (HttpRequest request, HttpResponse response, ClaimsPrincipal user, RequestValidator validator,
-        IdempotencyStore idempotency, SourceRequisitionsClient source, StatusComposer composer, IOptions<AssistantOptions> options, CancellationToken ct) =>
+        IdempotencyStore idempotency, SourceRequisitionsClient source, StatusComposer composer, ReferenceCatalogue catalogue, AuthOptions auth,
+        IOptions<AssistantOptions> options, CancellationToken ct) =>
     {
         var key = request.Headers["Idempotency-Key"].ToString();
         if (string.IsNullOrWhiteSpace(key) || key.Length > 100)
@@ -135,6 +144,20 @@ v1.MapPost("/requisition-requests", async (HttpRequest request, HttpResponse res
         if (error is not null) return error;
 
         var requester = user.FindFirstValue("sub")!;
+        // An invalid request is reported as such first: the agent can fix it without bothering the user.
+        var validation = validator.Validate(body!);
+        if (!validation.Valid)
+            return Problems.Create(422, ErrorCodes.ValidationFailed, "The request has invalid fields", invalidFields: validation.Issues,
+                suggestedAction: "Fix each field in invalidFields (see each suggestion) and retry. Nothing was created, so the same key may be reused.");
+
+        var confirmation = request.Headers[Confirmations.Header].ToString();
+        if (string.IsNullOrWhiteSpace(confirmation))
+            return Problems.Create(428, ErrorCodes.ConfirmationRequired, "The user has not confirmed this request",
+                suggestedAction: $"Call validateRequisitionRequest, show the user confirmationSummary, and only if they agree send confirmationToken as the {Confirmations.Header} header.");
+        if (!Confirmations.Matches(auth, requester, body!, confirmation))
+            return Problems.Create(422, ErrorCodes.ConfirmationMismatch, "This request differs from the one the user confirmed",
+                suggestedAction: "Validate the request as it is now, show the user the new confirmationSummary and ask again. Do not change a request after the user confirmed it.");
+
         var slot = $"{requester}:{key}";
         var (claim, stored) = idempotency.TryClaim(slot, Fingerprint(raw), options.Value.IdempotencyRetention);
         switch (claim)
@@ -154,17 +177,9 @@ v1.MapPost("/requisition-requests", async (HttpRequest request, HttpResponse res
 
         try
         {
-            var validation = validator.Validate(body!);
-            if (!validation.Valid)
-            {
-                idempotency.Release(slot);
-                return Problems.Create(422, ErrorCodes.ValidationFailed, "The request has invalid fields", invalidFields: validation.Issues,
-                    suggestedAction: "Fix each field in invalidFields (see each suggestion) and retry. Nothing was created, so the same key may be reused.");
-            }
-
             // Look before creating: if an earlier attempt with this key reached the source but its response was lost, reuse it.
             var created = await source.FindByRequestKeyAsync(requester, key, ct)
-                ?? await source.CreateAsync(ToSourceRequisition(body!, requester, key, validation), ct);
+                ?? await source.CreateAsync(ToSourceRequisition(catalogue, body!, requester, key, validation), ct);
             var view = await composer.ComposeAsync(created.Body, ct);
             var location = $"/v1/requisition-requests/{view.Id}";
             var payload = JsonSerializer.Serialize(view, viewJson);
@@ -184,26 +199,26 @@ v1.MapPost("/requisition-requests", async (HttpRequest request, HttpResponse res
     .RequireAuthorization(Scopes.Draft)
     .WithMetadata(new AgentToolHints("createRequisitionRequest", ReadOnly: false, Idempotent: true, Destructive: false, Scopes.Draft))
     .WithSummary("Raise a purchase requisition for approval")
-    .WithDescription("Creates the request as PendingApproval for the signed-in user; nothing is ordered until a person approves it. Requires an Idempotency-Key header. Returns the request with its status.")
+    .WithDescription("Creates the request as PendingApproval for the signed-in user; nothing is ordered until a person approves it. Requires an Idempotency-Key header and the X-User-Confirmation header (the confirmationToken from validate, sent only after the user agreed). Returns the request with its status.")
     .Accepts<CreateRequisitionRequest>("application/json")
     .Produces<RequisitionView>(201)
-    .ProducesProblem(400).ProducesProblem(409).ProducesProblem(422).ProducesProblem(503);
+    .ProducesProblem(400).ProducesProblem(409).ProducesProblem(422).ProducesProblem(428).ProducesProblem(503);
 
 v1.MapGet("/requisition-requests/{id}", async (string id, ClaimsPrincipal user, HttpResponse response, SourceRequisitionsClient source,
         StatusComposer composer, CancellationToken ct) =>
     {
         var found = await source.GetAsync(id, ct);
-        if (found is null || found.Value.Body["requester"]?.GetValue<string>() != user.FindFirstValue("sub"))
-            return NotFound(id);
+        if (found is null) return NotFound(id);
+        if (!IsOwner(user, found.Value.Body) && !HasScope(user, Scopes.ReadAll)) return NotYours(id);
         response.Headers.ETag = found.Value.ETag;
         return Results.Json(await composer.ComposeAsync(found.Value.Body, ct), viewJson);
     })
     .RequireAuthorization(Scopes.Read)
     .WithMetadata(new AgentToolHints("getRequisitionRequest", ReadOnly: true, Idempotent: true, Destructive: false, Scopes.Read))
     .WithSummary("Get the status of one of the user's requests")
-    .WithDescription("Returns status, a plain-language statusReason, nextExpectedStep, the SAP reference once transferred and a timeline. The ETag header is needed to withdraw.")
+    .WithDescription("Returns status, a plain-language statusReason, nextExpectedStep, the SAP reference once transferred and a timeline. The ETag header is needed to withdraw. Users see their own requests; a delegated procurement role (requisitions:read:all) sees any.")
     .Produces<RequisitionView>()
-    .ProducesProblem(404);
+    .ProducesProblem(403).ProducesProblem(404);
 
 v1.MapGet("/requisition-requests", async (ClaimsPrincipal user, SourceRequisitionsClient source, StatusComposer composer,
         string? cursor, int? limit, CancellationToken ct) =>
@@ -228,7 +243,8 @@ v1.MapPost("/requisition-requests/{id}:withdraw", async (string id, HttpRequest 
                 suggestedAction: "Get the request first and send its ETag in If-Match, after the user confirms the withdrawal.");
 
         var current = await source.GetAsync(id, ct);
-        if (current is null || current.Value.Body["requester"]?.GetValue<string>() != user.FindFirstValue("sub")) return NotFound(id);
+        if (current is null) return NotFound(id);
+        if (!IsOwner(user, current.Value.Body)) return NotYours(id);
 
         var (outcome, body, newEtag) = await source.WithdrawAsync(id, etag, ct);
         return outcome switch
@@ -246,13 +262,13 @@ v1.MapPost("/requisition-requests/{id}:withdraw", async (string id, HttpRequest 
     .WithSummary("Withdraw one of the user's requests that is still awaiting approval")
     .WithDescription("Requires the user's explicit confirmation and If-Match with the ETag from the latest read. Requests already approved cannot be withdrawn.")
     .Produces<RequisitionView>()
-    .ProducesProblem(404).ProducesProblem(409).ProducesProblem(412).ProducesProblem(428);
+    .ProducesProblem(403).ProducesProblem(404).ProducesProblem(409).ProducesProblem(412).ProducesProblem(428);
 
 var reference = v1.MapGroup("/reference").RequireAuthorization(Scopes.Read);
-reference.MapGet("/materials", (string? search, int? limit) =>
+reference.MapGet("/materials", (ReferenceCatalogue catalogue, string? search, int? limit) =>
     {
         var words = (search ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        return Results.Ok(ReferenceCatalogue.Materials
+        return Results.Ok(catalogue.Materials
             .Where(m => words.All(w => m.Description.Contains(w, StringComparison.OrdinalIgnoreCase) || m.Code.Contains(w, StringComparison.OrdinalIgnoreCase)))
             .Take(Math.Clamp(limit ?? 20, 1, 50)));
     })
@@ -260,20 +276,20 @@ reference.MapGet("/materials", (string? search, int? limit) =>
     .WithSummary("Search the material and service catalogue")
     .WithDescription("Matches all words against code and description. Use the returned code in request lines; prices shown are what will be charged.")
     .Produces<IEnumerable<MaterialInfo>>();
-reference.MapGet("/cost-centers", () => Results.Ok(ReferenceCatalogue.CostCenters))
+reference.MapGet("/cost-centers", (ReferenceCatalogue catalogue) => Results.Ok(catalogue.CostCenters))
     .WithMetadata(new AgentToolHints("listCostCenters", ReadOnly: true, Idempotent: true, Destructive: false, Scopes.Read))
     .WithSummary("List cost centers with their company and currency")
     .Produces<IEnumerable<CostCenterInfo>>();
-reference.MapGet("/plants", (string? companyCode) =>
-        Results.Ok(ReferenceCatalogue.Plants.Where(p => companyCode is null || p.CompanyCode == companyCode)))
+reference.MapGet("/plants", (ReferenceCatalogue catalogue, string? companyCode) =>
+        Results.Ok(catalogue.Plants.Where(p => companyCode is null || p.CompanyCode == companyCode)))
     .WithMetadata(new AgentToolHints("listPlants", ReadOnly: true, Idempotent: true, Destructive: false, Scopes.Read))
     .WithSummary("List receiving plants, optionally for one company")
     .Produces<IEnumerable<PlantInfo>>();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapPost("/dev/token", (DevTokenRequest r, AuthOptions options) =>
-            Results.Ok(new { access_token = DevTokens.Issue(options, r.User, r.Scopes ?? [Scopes.Read, Scopes.Draft]), token_type = "Bearer" }))
+    app.MapPost("/dev/token", (DevTokenRequest r, AuthOptions options, EmployeeDirectory directory) =>
+            Results.Ok(new { access_token = DevTokens.Issue(options, r.User, r.Scopes ?? DevTokens.ScopesFor(directory.Find(r.User))), token_type = "Bearer" }))
         .ExcludeFromDescription();
 }
 
@@ -284,8 +300,14 @@ static bool HasScope(ClaimsPrincipal user, string scope) =>
 
 static string Fingerprint(string raw) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(raw)));
 
-static IResult NotFound(string id) => Problems.Create(404, ErrorCodes.NotFound, $"No request {id} for this user",
+static IResult NotFound(string id) => Problems.Create(404, ErrorCodes.NotFound, $"There is no requisition {id}",
     suggestedAction: "List the user's requests to find the right id.");
+
+static bool IsOwner(ClaimsPrincipal user, JsonObject requisition) =>
+    requisition["requester"] is JsonValue v && v.TryGetValue<string>(out var requester) && requester == user.FindFirstValue("sub");
+
+static IResult NotYours(string id) => Problems.Create(403, ErrorCodes.NotYourRequisition, $"Requisition {id} belongs to someone else",
+    suggestedAction: "Users can only see and act on their own requisitions, unless they hold the delegated procurement role. Tell the user, and do not retry.");
 
 static IResult WithEtag(HttpResponse response, string? etag, IResult result)
 {
@@ -311,13 +333,13 @@ async Task<(T? Body, string Raw, IResult? Error)> ReadStrictAsync<T>(HttpRequest
     }
 }
 
-static JsonObject ToSourceRequisition(CreateRequisitionRequest r, string requester, string key, ValidationResult validation)
+static JsonObject ToSourceRequisition(ReferenceCatalogue catalogue, CreateRequisitionRequest r, string requester, string key, ValidationResult validation)
 {
-    var costCenter = ReferenceCatalogue.CostCenter(r.CostCenter)!;
+    var costCenter = catalogue.CostCenter(r.CostCenter)!;
     var lines = new JsonArray();
     for (var i = 0; i < r.Lines.Count; i++)
     {
-        var m = ReferenceCatalogue.Material(r.Lines[i].MaterialCode)!;
+        var m = catalogue.Material(r.Lines[i].MaterialCode)!;
         lines.Add(new JsonObject
         {
             ["lineNo"] = (i + 1) * 10,

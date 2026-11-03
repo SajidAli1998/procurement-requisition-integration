@@ -25,6 +25,7 @@ public sealed class ReportWriter(IOptions<SyncOptions> options)
             ["json"] = JsonSerializer.Serialize(report, Json),
             ["md"] = Markdown(report),
             ["html"] = Html(report),
+            ["csv"] = Csv(report),
         };
         foreach (var (extension, content) in files)
         {
@@ -114,6 +115,20 @@ public sealed class ReportWriter(IOptions<SyncOptions> options)
         }
         sb.AppendLine();
 
+        sb.AppendLine($"## Per requisition ({r.Records.Count})");
+        sb.AppendLine();
+        if (r.Records.Count == 0) sb.AppendLine("None.");
+        else
+        {
+            sb.AppendLine(string.Join(" · ", r.Outcomes.Select(o => $"**{o.Value}** {o.Key}")));
+            sb.AppendLine();
+            sb.AppendLine("| Requisition | Ver | Result | SAP document | Attempts | Failure category | Explanation |");
+            sb.AppendLine("|---|---:|---|---|---:|---|---|");
+            foreach (var o in r.Records)
+                sb.AppendLine($"| {o.Key} | {o.SourceVersion} | {o.Result} | {o.SapNumber} | {o.Attempts} | {o.FailureCategory} | {Cell(o.Explanation)} |");
+        }
+        sb.AppendLine();
+
         sb.AppendLine($"## Waiting for retry ({r.Pending.Count})");
         sb.AppendLine();
         if (r.Pending.Count == 0) sb.AppendLine("None.");
@@ -123,6 +138,21 @@ public sealed class ReportWriter(IOptions<SyncOptions> options)
             sb.AppendLine("|---|---|---:|---|---|");
             foreach (var p in r.Pending) sb.AppendLine($"| {p.Key} | {p.State} | {p.Attempts} | {p.NextAttemptAt:u} | {Cell(p.LastError)} |");
         }
+        return sb.ToString();
+    }
+
+    /// <summary>Per-requisition outcomes as CSV (opens in Excel), with the same columns as the client's Reconciliation_Expected sheet.</summary>
+    public static string Csv(ReconciliationReport r)
+    {
+        static string Q(object? v)
+        {
+            var s = Convert.ToString(v, System.Globalization.CultureInfo.InvariantCulture) ?? "";
+            return s.IndexOfAny([',', '"', '\n']) >= 0 ? $"\"{s.Replace("\"", "\"\"")}\"" : s;
+        }
+        var sb = new StringBuilder();
+        sb.AppendLine("Source_Requisition_ID,Source_Version,Processing_Result,Remote_Document_ID,Attempts,Failure_Category,Explanation,SAP_Responses");
+        foreach (var o in r.Records)
+            sb.AppendLine(string.Join(',', Q(o.Key), Q(o.SourceVersion), Q(o.Result), Q(o.SapNumber), Q(o.Attempts), Q(o.FailureCategory), Q(o.Explanation), Q(o.SapResponses)));
         return sb.ToString();
     }
 
@@ -209,6 +239,19 @@ public sealed class ReportWriter(IOptions<SyncOptions> options)
         {
             sb.Append("<table><tr><th>Requisition</th><th>Event</th><th>Detail</th></tr>");
             foreach (var c in r.NotableChanges) sb.Append($"<tr><td><code>{E(c.Key)}</code></td><td>{E(c.Kind)}</td><td>{E(c.Detail)}</td></tr>");
+            sb.Append("</table>");
+        }
+        sb.Append("</div>");
+
+        sb.Append($"<h2>Per requisition ({r.Records.Count})</h2>");
+        if (r.Records.Count > 0) sb.Append($"<p class=\"meta\">{E(string.Join(" · ", r.Outcomes.Select(o => $"{o.Value} {o.Key}")))} · also in <code>{E(r.RunId)}.csv</code></p>");
+        sb.Append("<div class=\"wrap\">");
+        if (r.Records.Count == 0) sb.Append("<div class=\"empty\">None.</div>");
+        else
+        {
+            sb.Append("<table><tr><th>Requisition</th><th class=\"num\">Ver</th><th>Result</th><th>SAP document</th><th class=\"num\">Attempts</th><th>Failure category</th><th>Explanation</th></tr>");
+            foreach (var o in r.Records)
+                sb.Append($"<tr><td><code>{E(o.Key)}</code></td><td class=\"num\">{o.SourceVersion}</td><td>{E(o.Result)}</td><td>{E(o.SapNumber)}</td><td class=\"num\">{o.Attempts}</td><td>{E(o.FailureCategory)}</td><td>{E(o.Explanation)}</td></tr>");
             sb.Append("</table>");
         }
         sb.Append("</div>");

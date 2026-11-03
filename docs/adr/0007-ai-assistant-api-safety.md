@@ -8,8 +8,9 @@ An LLM-based assistant will call this API on behalf of users. LLM agents retry, 
 ## Decision
 - **Least agency.** The assistant can only validate, create a draft (`PendingApproval`), read its user's requests and reference data, and withdraw its user's own pending drafts. Approval stays with people.
 - **Enforced by the server, not the prompt:**
-  - JWT scopes (`requisitions:read`, `requisitions:draft`) checked by authorization policies;
-  - identity taken from the token (`sub`), with ownership checked on every read and write;
+  - JWT scopes (`requisitions:read`, `requisitions:draft`, and `requisitions:read:all` for the delegated procurement role) checked by authorization policies;
+  - identity taken from the token (`sub`), with ownership checked on every read and write. Someone else's requisition returns `403 NOT_YOUR_REQUISITION`, as the client's contract tests expect;
+  - **user confirmation bound to the request.** `validate` returns a plain-language `confirmationSummary` and a `confirmationToken` (an HMAC of the user and the exact request). Create requires the token in `X-User-Confirmation`: `428 CONFIRMATION_REQUIRED` without it, and `422 CONFIRMATION_MISMATCH` if anything changed after the user agreed;
   - a spend cap per request, line and quantity limits;
   - per-user rate limiting.
 - **No invented data.** Codes must exist in the reference endpoints, and prices come from the catalogue. The request schema has no price field and rejects unknown fields and quoted numbers. The published OpenAPI schema states all of this (`additionalProperties: false`, min/max).
@@ -24,5 +25,7 @@ An LLM-based assistant will call this API on behalf of users. LLM agents retry, 
 - Development tokens are minted locally; production needs the identity provider (e.g. Entra ID, on-behalf-of flow).
 
 ## Alternatives considered
+- **`404` for someone else's requisition,** which hides that it exists. It's the safer default, but the client's contract tests specify `403`, and inside one organisation the enumeration risk is low.
+- **A boolean `userConfirmed: true` field:** trivial for a model to set without asking anyone. A token tied to the exact content at least proves the request was validated and not changed afterwards.
 - **Expose the integration's internal API to the assistant:** far too much agency.
 - **Let the assistant send prices and approve small amounts:** convenient, but it moves a financial control into the model.

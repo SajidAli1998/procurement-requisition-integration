@@ -1,0 +1,1100 @@
+{
+  "_about": [
+    "Synthetic employee directory: an assumption added by the integration team, not part of the client's workbook.",
+    "The workbook's AI_API_Contract_Tests refer to employees E1001-E1060 and the rule 'own record or delegated procurement role', but nothing links employees to requisitions or roles.",
+    "Assumptions: employee E10NN raised REQ-70NN and belongs to its department; REQ-7001, REQ-7015, REQ-7029, REQ-7043, REQ-7057 were raised by a colleague in the same department (E10NN+8), so the tests expecting 403 read someone else's record;",
+    "employees E1008, E1022, E1036, E1050 may read but not raise requisitions through the assistant; E1900 holds the delegated procurement role and may read every requisition."
+  ],
+  "employees": [
+    {
+      "id": "E1001",
+      "name": "Test Employee 1001",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1002",
+      "name": "Test Employee 1002",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1003",
+      "name": "Test Employee 1003",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1004",
+      "name": "Test Employee 1004",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1005",
+      "name": "Test Employee 1005",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1006",
+      "name": "Test Employee 1006",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1007",
+      "name": "Test Employee 1007",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1008",
+      "name": "Test Employee 1008",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": false,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1009",
+      "name": "Test Employee 1009",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1010",
+      "name": "Test Employee 1010",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1011",
+      "name": "Test Employee 1011",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1012",
+      "name": "Test Employee 1012",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1013",
+      "name": "Test Employee 1013",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1014",
+      "name": "Test Employee 1014",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1015",
+      "name": "Test Employee 1015",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1016",
+      "name": "Test Employee 1016",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1017",
+      "name": "Test Employee 1017",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1018",
+      "name": "Test Employee 1018",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1019",
+      "name": "Test Employee 1019",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1020",
+      "name": "Test Employee 1020",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1021",
+      "name": "Test Employee 1021",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1022",
+      "name": "Test Employee 1022",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": false,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1023",
+      "name": "Test Employee 1023",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1024",
+      "name": "Test Employee 1024",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1025",
+      "name": "Test Employee 1025",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1026",
+      "name": "Test Employee 1026",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1027",
+      "name": "Test Employee 1027",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1028",
+      "name": "Test Employee 1028",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1029",
+      "name": "Test Employee 1029",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1030",
+      "name": "Test Employee 1030",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1031",
+      "name": "Test Employee 1031",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1032",
+      "name": "Test Employee 1032",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1033",
+      "name": "Test Employee 1033",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1034",
+      "name": "Test Employee 1034",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1035",
+      "name": "Test Employee 1035",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1036",
+      "name": "Test Employee 1036",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": false,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1037",
+      "name": "Test Employee 1037",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1038",
+      "name": "Test Employee 1038",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1039",
+      "name": "Test Employee 1039",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1040",
+      "name": "Test Employee 1040",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1041",
+      "name": "Test Employee 1041",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1042",
+      "name": "Test Employee 1042",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1043",
+      "name": "Test Employee 1043",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1044",
+      "name": "Test Employee 1044",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1045",
+      "name": "Test Employee 1045",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1046",
+      "name": "Test Employee 1046",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1047",
+      "name": "Test Employee 1047",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1048",
+      "name": "Test Employee 1048",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1049",
+      "name": "Test Employee 1049",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1050",
+      "name": "Test Employee 1050",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": false,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1051",
+      "name": "Test Employee 1051",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1052",
+      "name": "Test Employee 1052",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1053",
+      "name": "Test Employee 1053",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1054",
+      "name": "Test Employee 1054",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1055",
+      "name": "Test Employee 1055",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1056",
+      "name": "Test Employee 1056",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1057",
+      "name": "Test Employee 1057",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1058",
+      "name": "Test Employee 1058",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1059",
+      "name": "Test Employee 1059",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1060",
+      "name": "Test Employee 1060",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1061",
+      "name": "Test Employee 1061",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1062",
+      "name": "Test Employee 1062",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1063",
+      "name": "Test Employee 1063",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1064",
+      "name": "Test Employee 1064",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1065",
+      "name": "Test Employee 1065",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1066",
+      "name": "Test Employee 1066",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1067",
+      "name": "Test Employee 1067",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1068",
+      "name": "Test Employee 1068",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1069",
+      "name": "Test Employee 1069",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1070",
+      "name": "Test Employee 1070",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1071",
+      "name": "Test Employee 1071",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1072",
+      "name": "Test Employee 1072",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1073",
+      "name": "Test Employee 1073",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1074",
+      "name": "Test Employee 1074",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1075",
+      "name": "Test Employee 1075",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1076",
+      "name": "Test Employee 1076",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1077",
+      "name": "Test Employee 1077",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1078",
+      "name": "Test Employee 1078",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1079",
+      "name": "Test Employee 1079",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1080",
+      "name": "Test Employee 1080",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1081",
+      "name": "Test Employee 1081",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1082",
+      "name": "Test Employee 1082",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1083",
+      "name": "Test Employee 1083",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1084",
+      "name": "Test Employee 1084",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1085",
+      "name": "Test Employee 1085",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1086",
+      "name": "Test Employee 1086",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1087",
+      "name": "Test Employee 1087",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1088",
+      "name": "Test Employee 1088",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1089",
+      "name": "Test Employee 1089",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1090",
+      "name": "Test Employee 1090",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1091",
+      "name": "Test Employee 1091",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1092",
+      "name": "Test Employee 1092",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1093",
+      "name": "Test Employee 1093",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1094",
+      "name": "Test Employee 1094",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1095",
+      "name": "Test Employee 1095",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1096",
+      "name": "Test Employee 1096",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1097",
+      "name": "Test Employee 1097",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1098",
+      "name": "Test Employee 1098",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1099",
+      "name": "Test Employee 1099",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1100",
+      "name": "Test Employee 1100",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1101",
+      "name": "Test Employee 1101",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1102",
+      "name": "Test Employee 1102",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1103",
+      "name": "Test Employee 1103",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1104",
+      "name": "Test Employee 1104",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1105",
+      "name": "Test Employee 1105",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1106",
+      "name": "Test Employee 1106",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1107",
+      "name": "Test Employee 1107",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1108",
+      "name": "Test Employee 1108",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1109",
+      "name": "Test Employee 1109",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1110",
+      "name": "Test Employee 1110",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1111",
+      "name": "Test Employee 1111",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1112",
+      "name": "Test Employee 1112",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1113",
+      "name": "Test Employee 1113",
+      "department": "Bus Operations",
+      "costCentre": "CC-01",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1114",
+      "name": "Test Employee 1114",
+      "department": "Fleet Maintenance",
+      "costCentre": "CC-02",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1115",
+      "name": "Test Employee 1115",
+      "department": "Customer Experience",
+      "costCentre": "CC-03",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1116",
+      "name": "Test Employee 1116",
+      "department": "School Transport",
+      "costCentre": "CC-04",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1117",
+      "name": "Test Employee 1117",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1118",
+      "name": "Test Employee 1118",
+      "department": "Finance",
+      "costCentre": "CC-06",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1119",
+      "name": "Test Employee 1119",
+      "department": "Facilities",
+      "costCentre": "CC-07",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1120",
+      "name": "Test Employee 1120",
+      "department": "IT Applications",
+      "costCentre": "CC-08",
+      "canRaise": true,
+      "procurementDelegate": false
+    },
+    {
+      "id": "E1900",
+      "name": "Test Procurement Delegate",
+      "department": "Procurement",
+      "costCentre": "CC-05",
+      "canRaise": true,
+      "procurementDelegate": true
+    }
+  ],
+  "requisitionRequesters": {
+    "REQ-7001": "E1009",
+    "REQ-7002": "E1002",
+    "REQ-7003": "E1003",
+    "REQ-7004": "E1004",
+    "REQ-7005": "E1005",
+    "REQ-7006": "E1006",
+    "REQ-7007": "E1007",
+    "REQ-7008": "E1008",
+    "REQ-7009": "E1009",
+    "REQ-7010": "E1010",
+    "REQ-7011": "E1011",
+    "REQ-7012": "E1012",
+    "REQ-7013": "E1013",
+    "REQ-7014": "E1014",
+    "REQ-7015": "E1023",
+    "REQ-7016": "E1016",
+    "REQ-7017": "E1017",
+    "REQ-7018": "E1018",
+    "REQ-7019": "E1019",
+    "REQ-7020": "E1020",
+    "REQ-7021": "E1021",
+    "REQ-7022": "E1022",
+    "REQ-7023": "E1023",
+    "REQ-7024": "E1024",
+    "REQ-7025": "E1025",
+    "REQ-7026": "E1026",
+    "REQ-7027": "E1027",
+    "REQ-7028": "E1028",
+    "REQ-7029": "E1037",
+    "REQ-7030": "E1030",
+    "REQ-7031": "E1031",
+    "REQ-7032": "E1032",
+    "REQ-7033": "E1033",
+    "REQ-7034": "E1034",
+    "REQ-7035": "E1035",
+    "REQ-7036": "E1036",
+    "REQ-7037": "E1037",
+    "REQ-7038": "E1038",
+    "REQ-7039": "E1039",
+    "REQ-7040": "E1040",
+    "REQ-7041": "E1041",
+    "REQ-7042": "E1042",
+    "REQ-7043": "E1051",
+    "REQ-7044": "E1044",
+    "REQ-7045": "E1045",
+    "REQ-7046": "E1046",
+    "REQ-7047": "E1047",
+    "REQ-7048": "E1048",
+    "REQ-7049": "E1049",
+    "REQ-7050": "E1050",
+    "REQ-7051": "E1051",
+    "REQ-7052": "E1052",
+    "REQ-7053": "E1053",
+    "REQ-7054": "E1054",
+    "REQ-7055": "E1055",
+    "REQ-7056": "E1056",
+    "REQ-7057": "E1065",
+    "REQ-7058": "E1058",
+    "REQ-7059": "E1059",
+    "REQ-7060": "E1060",
+    "REQ-7061": "E1061",
+    "REQ-7062": "E1062",
+    "REQ-7063": "E1063",
+    "REQ-7064": "E1064",
+    "REQ-7065": "E1065",
+    "REQ-7066": "E1066",
+    "REQ-7067": "E1067",
+    "REQ-7068": "E1068",
+    "REQ-7069": "E1069",
+    "REQ-7070": "E1070",
+    "REQ-7071": "E1071",
+    "REQ-7072": "E1072",
+    "REQ-7073": "E1073",
+    "REQ-7074": "E1074",
+    "REQ-7075": "E1075",
+    "REQ-7076": "E1076",
+    "REQ-7077": "E1077",
+    "REQ-7078": "E1078",
+    "REQ-7079": "E1079",
+    "REQ-7080": "E1080",
+    "REQ-7081": "E1081",
+    "REQ-7082": "E1082",
+    "REQ-7083": "E1083",
+    "REQ-7084": "E1084",
+    "REQ-7085": "E1085",
+    "REQ-7086": "E1086",
+    "REQ-7087": "E1087",
+    "REQ-7088": "E1088",
+    "REQ-7089": "E1089",
+    "REQ-7090": "E1090",
+    "REQ-7091": "E1091",
+    "REQ-7092": "E1092",
+    "REQ-7093": "E1093",
+    "REQ-7094": "E1094",
+    "REQ-7095": "E1095",
+    "REQ-7096": "E1096",
+    "REQ-7097": "E1097",
+    "REQ-7098": "E1098",
+    "REQ-7099": "E1099",
+    "REQ-7100": "E1100",
+    "REQ-7101": "E1101",
+    "REQ-7102": "E1102",
+    "REQ-7103": "E1103",
+    "REQ-7104": "E1104",
+    "REQ-7105": "E1105",
+    "REQ-7106": "E1106",
+    "REQ-7107": "E1107",
+    "REQ-7108": "E1108",
+    "REQ-7109": "E1109",
+    "REQ-7110": "E1110",
+    "REQ-7111": "E1111",
+    "REQ-7112": "E1112",
+    "REQ-7113": "E1113",
+    "REQ-7114": "E1114",
+    "REQ-7115": "E1115",
+    "REQ-7116": "E1116",
+    "REQ-7117": "E1117",
+    "REQ-7118": "E1118",
+    "REQ-7119": "E1119",
+    "REQ-7120": "E1120"
+  }
+}

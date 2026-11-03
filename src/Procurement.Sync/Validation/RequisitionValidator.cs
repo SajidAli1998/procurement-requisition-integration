@@ -39,7 +39,12 @@ public sealed class RequisitionValidator : AbstractValidator<Requisition>
             .WithErrorCode(nameof(QuarantineReason.NeededByInPast))
             .WithMessage(r => $"neededBy {r.NeededBy:yyyy-MM-dd} is in the past");
 
-        RuleFor(r => r).Must(TotalMatches).When(r => r.Lines.Count > 0)
+        // Checked before the line total, so a zero total is reported as such rather than as a mismatch.
+        RuleFor(r => r.TotalAmount).GreaterThan(0)
+            .WithErrorCode(nameof(QuarantineReason.AmountNotPositive))
+            .WithMessage(r => $"Total amount must be greater than zero (got {r.TotalAmount})");
+
+        RuleFor(r => r).Must(TotalMatches).When(r => r.Lines.Count > 0 && r.TotalAmount > 0)
             .WithErrorCode(nameof(QuarantineReason.TotalMismatch))
             .WithMessage(r => $"totalAmount {r.TotalAmount} does not equal the sum of the lines ({LineTotal(r)})");
     }

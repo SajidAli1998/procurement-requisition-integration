@@ -6,7 +6,7 @@ namespace Procurement.Sync.Validation;
 /// </summary>
 public static class ReferenceData
 {
-    public static readonly IReadOnlySet<string> Currencies = new HashSet<string>(StringComparer.Ordinal) { "USD", "EUR", "GBP", "AED", "SAR" };
+    public static readonly IReadOnlySet<string> Currencies = new HashSet<string>(StringComparer.Ordinal) { "USD", "EUR", "GBP", "AED", "SAR", "QAR" };
     public static readonly IReadOnlySet<string> Units = new HashSet<string>(StringComparer.Ordinal) { "EA", "BOX", "KG", "L", "M", "H" };
-    public static readonly IReadOnlySet<string> Plants = new HashSet<string>(StringComparer.Ordinal) { "1100", "1200", "2100", "2200" };
+    public static readonly IReadOnlySet<string> Plants = new HashSet<string>(StringComparer.Ordinal) { "1100", "1200", "2100", "2200", "3100" };
 }

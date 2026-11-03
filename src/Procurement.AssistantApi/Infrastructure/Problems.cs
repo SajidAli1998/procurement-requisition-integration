@@ -18,6 +18,9 @@ public static class ErrorCodes
     public const string RateLimited = "RATE_LIMITED";
     public const string Unauthorized = "UNAUTHORIZED";
     public const string Forbidden = "FORBIDDEN";
+    public const string NotYourRequisition = "NOT_YOUR_REQUISITION";
+    public const string ConfirmationRequired = "CONFIRMATION_REQUIRED";
+    public const string ConfirmationMismatch = "CONFIRMATION_MISMATCH";
 }
 
 /// <summary>RFC 9457 problem details with extensions an agent can act on.</summary>

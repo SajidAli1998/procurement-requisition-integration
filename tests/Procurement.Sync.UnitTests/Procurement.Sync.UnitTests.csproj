@@ -16,5 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Procurement.Sync\Procurement.Sync.csproj" />
+    <ProjectReference Include="..\..\src\Procurement.SyntheticData\Procurement.SyntheticData.csproj" />
   </ItemGroup>
 </Project>

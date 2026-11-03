@@ -1,16 +1,33 @@
 # Test scenarios
 
-**91 automated tests:** 46 unit tests and 45 scenario tests. They run in about 30 seconds with `dotnet test`.
+**106 automated tests:** 53 unit tests and 53 scenario tests. They run in about 40 seconds with `dotnet test`.
 
 The scenario tests host the real source mock, SAP mock and Assistant API in-process (`WebApplicationFactory`) and wire the **production** sync services to them. The resilience pipeline is the real one. Only waits are scaled down (`Resilience:DelayScale = 0.001`), so `Retry-After`, backoff and the circuit breaker are exercised in milliseconds rather than mocked.
 
 ```bash
 dotnet test                                                                 # everything
+dotnet test --project tests/Procurement.ScenarioTests -- --filter-class "*Workbook*"   # the client's data pack only
 dotnet test --project tests/Procurement.ScenarioTests                       # scenarios only
 dotnet test --project tests/Procurement.ScenarioTests -- --filter-class "*AssistantApiTests"
 ```
 
-## Seed data used by the scenarios
+## The client's data pack (`WorkbookPipelineTests`, `WorkbookAssistantContractTests`)
+
+These run the mocks on the client's workbook ([`data/README.md`](../data/README.md)) and compare our results with its expected-outcome sheets, row by row.
+
+| # | Scenario | Workbook sheet | Expected |
+|---|---|---|---|
+| W01 | First run over the workbook | `Reconciliation_Expected` | All 120 rows match on result, SAP document, attempts, failure category and source version. For example, `REQ-7002` is `409,201` "Created after version refresh (v2 → v3)", and `REQ-7003` is `429,429,201` "Created after two rate-limit responses". No invariant fails. |
+| W02 | Quarantine | `Quarantine_Expected` | All 50 quarantined with the matching reason and field (`AMOUNT_NOT_POSITIVE` → `AmountNotPositive`/`totalAmount`, `REQUIRED_DATE_MISSING` → `MissingRequiredField`/`neededBy`), raw payload kept |
+| W03 | What SAP holds afterwards | `Mock_Remote_Status` | Exactly 65 documents with the expected numbers, versions and release status (`Approved` = released); no duplicates |
+| W04 | Rerun | — | Three pages of 40 read; the rerun creates and amends nothing; still 65 documents |
+| W05 | SAP's search lags, so the lookup misses the 7 pre-existing documents | `Failure_Injection` (`DUPLICATE`) | Each create gets `409` with the existing id, which is adopted: result `Duplicate`, 1 attempt, category `Idempotency`; nothing created |
+| W06 | The workbook plus random chaos (10% `503`, 5% `429`, 5% lost responses) | `Mock_Remote_Status` | Settles to 65 synced with the expected document numbers, 50 quarantined, 5 skipped, 0 duplicates |
+| W07 | AI API contract | `AI_API_Contract_Tests` | All 60 rows return the expected status (`200`, `201` or `403`). Every create that should succeed is first refused with `428` when sent without the user's confirmation. |
+
+`procsync check-expected` runs the W01 comparison against a live run.
+
+## Generated data used by the other scenarios
 
 250 synthetic requisitions, generated deterministically (seed 42):
 
@@ -72,11 +89,12 @@ dotnet test --project tests/Procurement.ScenarioTests -- --filter-class "*Assist
 | A02 | Request above the spend cap | `422 VALIDATION_FAILED` with `SPEND_LIMIT_EXCEEDED`, `retryable: false` |
 | A03 | Create without a key, retry with the same key, reuse the key with a changed body | `400 IDEMPOTENCY_KEY_REQUIRED`; replay of the same response (`Idempotent-Replayed`); `422 IDEMPOTENCY_KEY_REUSED`; one draft, priced from the catalogue |
 | A04 | Unknown field (`unitPrice`), or a number sent as a string | `400 INVALID_REQUEST_BODY` naming the field |
-| A05 | No token; read-only token creating; another user reading | `401`; `403 FORBIDDEN`; `404` (existence not revealed) |
+| A05 | No token; read-only token creating; another user reading; delegated procurement role reading | `401`; `403 FORBIDDEN`; `403 NOT_YOUR_REQUISITION`; `200` |
 | A06 | Withdraw without `If-Match`, with a stale one, valid, and after approval | `428`; `412`; `Withdrawn`; `409 NOT_WITHDRAWABLE` |
 | A07 | Full journey | `PendingApproval` (nothing transferred before approval) → approved → `TransferredToErp` with SAP number → `PurchaseOrderCreated` with PO and timeline |
 | A08 | The source loses the create response | `503`, `retryable: true`; the retry finds the draft and returns it; exactly one draft exists |
 | A09 | OpenAPI contract | Every operation has `operationId`, `x-mcp` and security; only withdraw is destructive; strict request schemas published |
+| A10 | Create without confirmation; with a token but a changed quantity; with another user's token | `428 CONFIRMATION_REQUIRED`; `422 CONFIRMATION_MISMATCH`; `422`; nothing created |
 
 ## Mock contract tests (`SourceApiTests`, `SapApiTests`)
 
@@ -97,6 +115,8 @@ The mocks are tested as well, so a scenario failure points at the integration, n
 | Mapping | SAP status codes → `ErpStatus`; canonical → SAP items; content hash ignores version; idempotency key deterministic per version |
 | `ErpStatus` | Forward-only transitions, including `Rejected` and terminal states |
 | State store | Enums stored as text, UTC round-trip, concurrency token detects lost updates, outbox uniqueness, lease exclusivity and expiry |
+| Client's workbook | Every sheet read with its documented count; types kept and blanks stay blank; line totals equal quantity × price; the employee directory covers every requisition |
+| New rules | A zero total is `AmountNotPositive` (not a mismatch); a blank `neededBy` is `MissingRequiredField`; QAR and tax codes accepted |
 
 ## Writing assertions for parallel work
 
@@ -126,9 +146,10 @@ curl -X DELETE localhost:5102/_admin/faults     # clear
 | `Delay` | Adds latency (use it to trigger client timeouts) |
 | `pageOverlap` (source) | Each page repeats the previous page's last record |
 | `HonorIdempotencyKey: false` (SAP) | Behaves like a real SAP endpoint that ignores the header |
+| `ReferenceSearchLag: true` (SAP) | Queries by `ExternalReference` return nothing, as when a search index lags behind writes |
 
 Other admin endpoints:
-- `/_admin/reset`, `/_admin/seed-manifest` and `/_admin/requisitions/{id}/edit` (source);
+- `/_admin/reset?dataset=Workbook|Generated` (both mocks), `/_admin/seed-manifest` and `/_admin/requisitions/{id}/edit` (source);
 - `/_admin/advance`, `/_admin/requisitions/{n}/lifecycle`, `/_admin/requisitions/{n}/touch` and `/_admin/stats` (SAP).
 
 Both mocks also enforce a real token-bucket rate limit (20/s by default), which returns `429` with `Retry-After` and `RateLimit-Policy` headers.

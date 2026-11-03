@@ -13,7 +13,8 @@ public static class OpenApiSetup
         Rules for agents:
         1. Raising a request never commits spend: it is created as PendingApproval and a person approves it.
         2. Look up codes with the /v1/reference endpoints; never invent cost centers, plants or materials. Prices come from the catalogue.
-        3. Call validateRequisitionRequest first and fix every issue before creating.
+        3. Call validateRequisitionRequest first and fix every issue. Show the user confirmationSummary; only if they agree, create with
+           confirmationToken in the X-User-Confirmation header. The token only fits that exact request.
         4. Send a new Idempotency-Key (UUID) per user intent on create, and reuse it only when retrying that same request.
         5. Branch on problem.code, not on titles. If problem.retryable is false, do not retry; follow problem.suggestedAction.
         6. Relay statusReason and nextExpectedStep to the user as written.
@@ -38,7 +39,7 @@ public static class OpenApiSetup
                     Type = SecuritySchemeType.Http,
                     Scheme = "bearer",
                     BearerFormat = "JWT",
-                    Description = "User-delegated token. Scopes: requisitions:read, requisitions:draft.",
+                    Description = "User-delegated token. Scopes: requisitions:read (own requests), requisitions:draft (raise and withdraw), requisitions:read:all (delegated procurement role).",
                 };
                 return Task.CompletedTask;
             });

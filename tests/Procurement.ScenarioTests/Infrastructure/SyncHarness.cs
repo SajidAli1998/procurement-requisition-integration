@@ -21,6 +21,7 @@ public sealed class SyncHarness : IAsyncDisposable
     public const string SapBase = "/sap/opu/odata/sap/API_PURCHASEREQ_PROCESS_SRV/";
 
     private readonly Dictionary<string, string?> _overrides;
+    private readonly string _dataset;
     private SqliteConnection _keepAlive = null!;
     private ServiceProvider _services = null!;
     private AssistantApiFactory? _assistant;
@@ -28,14 +29,18 @@ public sealed class SyncHarness : IAsyncDisposable
     public string ConnectionString { get; private set; } = "";
     public string ReportDirectory { get; } = Path.Combine(Path.GetTempPath(), "procsync-tests", Guid.NewGuid().ToString("N"));
 
-    public SourceApiFactory Source { get; } = new();
-    public SapApiFactory Sap { get; } = new();
+    public SourceApiFactory Source { get; }
+    public SapApiFactory Sap { get; }
     public HttpClient SourceAdmin { get; }
     public HttpClient SapAdmin { get; }
 
-    public SyncHarness(Dictionary<string, string?>? overrides = null)
+    /// <param name="dataset">"Generated" (default) or "Workbook" for the client's data pack.</param>
+    public SyncHarness(Dictionary<string, string?>? overrides = null, string dataset = "Generated")
     {
         _overrides = overrides ?? [];
+        _dataset = dataset;
+        Source = new SourceApiFactory(dataset);
+        Sap = new SapApiFactory(dataset);
         SourceAdmin = Source.CreateClient();
         SapAdmin = Sap.CreateClient();
         BuildServices();
@@ -91,7 +96,7 @@ public sealed class SyncHarness : IAsyncDisposable
     public IServiceProvider Services => _services;
 
     /// <summary>The assistant API, wired to the same source mock and integration store.</summary>
-    public AssistantApiFactory Assistant => _assistant ??= new AssistantApiFactory(Source, ConnectionString);
+    public AssistantApiFactory Assistant => _assistant ??= new AssistantApiFactory(Source, ConnectionString, _dataset);
 
     public Task<RunResult> RunAsync() => _services.GetRequiredService<SyncRunner>().RunAsync("test", Ct);
 

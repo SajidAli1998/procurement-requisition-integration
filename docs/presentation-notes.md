@@ -7,12 +7,14 @@ Speaker notes for presenting the solution and answering questions. Aim for about
 - **The problem in one line:** move approved requisitions into SAP and keep their status in sync, without ever losing one or creating one twice, while both systems misbehave.
 - **The approach in one line:** *at-least-once delivery with idempotent effects.* Every step can safely run again, and a reconciliation report proves the result against SAP after every run.
 - **Stack:** .NET 10, ASP.NET Core minimal APIs, EF Core, Polly v8 via `Microsoft.Extensions.Http.Resilience`, xUnit v3. SQLite by default, with SQL Server one setting away.
+- **Your data:** everything runs on your synthetic workbook, read straight from Excel. The first run matches all 120 rows of your `Reconciliation_Expected` sheet, and all 60 AI contract tests pass.
 
 ## 2. Architecture (3 min): show `docs/architecture.md` §1-§3
 
 - **Three external parties:** the source API, SAP, and an AI assistant. One integration service in the middle.
 - **One run:** extract (paged, checkpointed) → validate or quarantine → outbox → dispatch → status sync → write-back → reconcile.
-- **The mocks are deliberately hostile:** malformed records, page overlap, `429`s, `503`s, responses lost *after* SAP has committed, ETag conflicts, a release lock.
+- **The mocks act out your workbook:** the source serves your 120 requisitions as-is. SAP already holds your 7 "duplicate" documents, uses your `MOCK-SAP-5xxxx` numbers, and plays your failure schedule (`429` with `Retry-After: 20`, `503`, `409` version conflicts).
+- **And they can be hostile beyond it:** malformed JSON, page overlap, responses lost *after* SAP has committed, ETag conflicts, a release lock.
 
 ## 3. The guarantees (4 min)
 
@@ -29,19 +31,23 @@ Point to the test that shows **why layer 3 exists**: with key support off, a bli
 
 **Ownership** (ADR-0002): the source owns content, SAP owns status. Statuses only move forward. Late changes and cancellations go to a person.
 
-## 4. Demo (5 min): `scripts/demo.sh` (or `demo.ps1`)
+## 4. Demo (5 min): `scripts/demo.sh` (or `demo.ps1`), on your workbook
 
 | Step | What to say |
 |---|---|
-| 2-3 Chaos run | "10% 503s, 5% 429s, 3% lost responses. Watch the counters: retries, throttling, in-doubt resolved. All 184 still land, zero duplicates." |
-| 4 Rerun | "Nothing new is created. The only records read are our own write-backs, recognised as unchanged by content hash." |
-| 5 Quarantine | "Every failure has a reason code, the exact field, and the raw payload." |
+| 1-2 First run | "Your 120 requisitions, three pages of 40, and your failure schedule. It honours every 20-second `Retry-After`, which is why it takes a minute." |
+| 3 Per requisition | "One row per requisition, in the same columns as your `Reconciliation_Expected` sheet: REQ-7001 already in SAP, 7002 version refresh, 7003 two rate limits, 7004 two transient failures. `check-expected`: 120 of 120 match." |
+| 4 Rerun | "Nothing new is created; SAP still holds 65, with no duplicates." |
+| 5 Quarantine | "Your 50 bad records: reason code, field and raw payload. REQ-7071 has a zero total although its lines add up to 25,452; we report what you asked for, a non-positive total." |
 | 6 Fix in source | "Fix the data at the source and the next run releases it automatically." |
 | 7 SAP progresses | "Status flows back: SAP number, PO number and a plain-language message, written with `If-Match`." |
-| 8-9 Assistant | "Validate first, actionable issues back. Create with a key. Nothing reaches SAP until a person approves." |
-| 10 Report | Open `reports/latest.html`: invariants, totals per currency, failures with next steps. |
+| 8-9 Assistant | "Signed in as your employees. E1003 sees their own requisition; E1001 gets `403` on a colleague's. Validate gives a summary to show the user and a token; create needs that token, so the AI can't change the request after the user said yes. E1008 can't raise requisitions. Nothing reaches SAP until a person approves." |
+| 10 Report | Open `reports/latest.html`: invariants, totals per currency, failures with next steps, the per-requisition table. |
 
-**Backup if the live demo fails:** [`reports/sample/chaos-run.md`](../reports/sample/chaos-run.md) and `dotnet test`.
+**Backup if the live demo fails:**
+- [`reports/sample/workbook-first-run.md`](../reports/sample/workbook-first-run.md) (and `.csv`);
+- [`reports/sample/chaos-run-generated.md`](../reports/sample/chaos-run-generated.md);
+- `dotnet test`.
 
 ## 5. AI contract (2 min): `api/README.md`
 
@@ -57,11 +63,31 @@ Point to the test that shows **why layer 3 exists**: with key support off, a bli
 - **A rejected request whose response was lost.** The lookup correctly finds nothing; the record is resent next run and quarantined. That's the right behaviour, so the test now asserts the guarantee rather than a fixed count (S04).
 - **A dropped connection in the Assistant API** surfaced as a `500` instead of a retryable `503` (A08).
 - **The OpenAPI schema advertised "number or string"** for quantity, because .NET's web defaults accept quoted numbers. Strict handling is now on and published (A04, A09).
+- **A real extra `429` in a demo rehearsal.** With more parallel sends, the SAP mock's own rate limiter throttled one create, and the report honestly said 4 attempts against an expected 3. The fix was a lower client-side rate in the demo, not changing what the report counts.
 - **A vulnerable transitive package** from the SQL Server driver was pinned to a patched version instead of suppressing the warning.
 
 ---
 
 ## Likely questions
+
+**How did you use our data?**
+- It's read straight from your Excel file at startup, with no import step and no copy.
+- The source mock serves it as-is, and the SAP mock acts out your remote: your document numbers, your 7 existing documents, and your failure schedule.
+- The integration itself knows nothing about the workbook. It handles SAP's `409` "already exists" and `409` "version conflict" as general behaviours.
+- Tests compare the results with your expected sheets row by row: W01–W07, plus `procsync check-expected` against a live run.
+
+**What did you have to assume?** All of it is listed in `data/README.md`:
+- **Company code and plant:** your data has none; we use 3000/3100.
+- **Who owns which requisition:** we added an employee directory, because the AI tests need it.
+- **How a version conflict arises:** the source was edited while the create was in flight.
+
+Worth confirming with you: suppliers aren't linked to any requisition, and REQ-7071's zero total conflicts with its lines.
+
+**Why `403` and not `404` for someone else's requisition?**
+Your contract tests say `403`, so we follow them. `404` would hide that the requisition exists; inside one organisation that risk is low. ADR-0007 records the trade-off.
+
+**Why does the first run take a minute?**
+Your `429`s ask for 20 seconds, and we honour them: 14 waits, spread over parallel sends. Ignoring `Retry-After` would be faster, and wrong.
 
 **Why poll instead of webhooks or events?**
 The source only offers a paged read API. Polling with a durable cursor is crash-safe and simple to reason about. If the source gains webhooks or CDC, they feed the same outbox and nothing downstream changes (ADR-0005).
@@ -147,8 +173,10 @@ The same shape applies: a typed client for the Dataverse Web API or Microsoft Gr
 
 ## Numbers to remember
 
-- **Seed data:** 250 requisitions. 207 approved, of which 184 are valid, 17 malformed (10 defect types) and 6 rejected by SAP; 43 not approved.
-- **Clean run:** 184 created, 23 quarantined, 0 duplicates. A rerun creates nothing.
-- **Chaos sample:** 69 retries, 23 throttled, 4 lost responses resolved, every invariant passing.
-- **Tests:** 91 in total (46 unit, 45 scenario), about 30 seconds.
-- **Assistant API:** 8 operations; 1 destructive (withdraw); spend cap 25,000; 60 requests per minute per user.
+- **Your workbook:** 120 requisitions, 115 approved and 5 pending.
+  - First run: 58 created, 7 already in SAP (linked, not created), 50 quarantined (25 zero total, 25 missing date), 5 skipped, 0 duplicates.
+  - All 120 rows match `Reconciliation_Expected`; all 60 AI contract tests pass.
+  - 14 `429`s, 14 `503`s and 7 version conflicts handled.
+- **Generated stress set:** 250 requisitions. A run gives 184 created, 23 quarantined and 0 duplicates, also under 10% `503`s, 5% `429`s and 3% lost responses.
+- **Tests:** 106 in total (53 unit, 53 scenario), about 40 seconds.
+- **Assistant API:** 8 operations; 1 destructive (withdraw); create needs the user's confirmation token; spend cap 25,000; 60 requests per minute per user.

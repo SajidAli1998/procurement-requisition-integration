@@ -13,6 +13,8 @@ public enum QuarantineReason
     UnknownUnitOfMeasure,
     UnknownPlant,
     NeededByInPast,
+    /// <summary>Total amount is zero or negative.</summary>
+    AmountNotPositive,
     TotalMismatch,
     /// <summary>SAP answered 4xx: the data is valid for the source but not for SAP.</summary>
     SapRejectedPermanent,

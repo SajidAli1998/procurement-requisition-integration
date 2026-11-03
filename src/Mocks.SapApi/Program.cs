@@ -15,10 +15,12 @@ builder.Services.AddMockInfrastructure(builder.Configuration);
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton<SapStore>();
 builder.Services.AddSingleton<IdempotencyStore>();
+builder.Services.AddSingleton<WorkbookRemote>();
 // SAP payloads use PascalCase property names.
 builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.PropertyNamingPolicy = null);
 
 var app = builder.Build();
+app.Services.GetRequiredService<WorkbookRemote>(); // seed pre-existing documents at startup
 app.UseMockInfrastructure();
 app.MapOpenApi();
 app.MapScalarApiReference();
@@ -26,10 +28,22 @@ app.MapFaultAdmin();
 
 var json = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNamingPolicy = null };
 
-app.MapPost(EntitySet, async (HttpContext context, SapStore store, IdempotencyStore idempotency, FaultInjector faults) =>
+app.MapPost(EntitySet, async (HttpContext context, SapStore store, IdempotencyStore idempotency, FaultInjector faults, WorkbookRemote remote) =>
     {
         using var reader = new StreamReader(context.Request.Body, Encoding.UTF8);
         var raw = await reader.ReadToEndAsync(context.RequestAborted);
+
+        // Workbook failure schedule: throttling and outages are answered before anything is processed.
+        var reference = ReferenceOf(raw);
+        if (reference is not null && remote.ScheduledFailure(reference) is { } scheduled)
+        {
+            if (scheduled.HttpStatus == 429)
+            {
+                context.Response.Headers.RetryAfter = scheduled.RetryAfterSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                return ODataError.Create(429, "RATE_LIMIT", $"Too many requests; retry after {scheduled.RetryAfterSeconds} seconds");
+            }
+            return ODataError.Create(scheduled.HttpStatus, "SERVICE_UNAVAILABLE", "The service is temporarily unavailable");
+        }
 
         var key = context.Request.Headers["Idempotency-Key"].ToString();
         var useKey = faults.Settings.HonorIdempotencyKey && !string.IsNullOrWhiteSpace(key);
@@ -69,7 +83,25 @@ app.MapPost(EntitySet, async (HttpContext context, SapStore store, IdempotencySt
             return ODataError.Create(400, "06/402", errors[0], errors);
         }
 
-        var created = store.Create(input!);
+        // The workbook's remote refuses a second document for the same reference and returns the existing one.
+        if (remote.RejectsDuplicateReferences && store.FindByExternalReference(input!.ExternalReference!) is [var existing, ..])
+        {
+            if (useKey) idempotency.Release(key);
+            context.Response.Headers.Location = $"{EntitySet}('{existing.PurchaseRequisition}')";
+            return ODataError.Create(409, "DUPLICATE_REFERENCE",
+                $"Purchase requisition {existing.PurchaseRequisition} already exists for {existing.ExternalReference}",
+                facts: new Dictionary<string, object> { ["existingDocument"] = existing.PurchaseRequisition, ["remoteVersion"] = existing.ExternalVersion });
+        }
+        // ...and refuses a stale version when it already knows a newer one (VERSION_CONFLICT).
+        if (remote.NewerVersionThan(input!.ExternalReference!, input.ExternalVersion ?? 0) is { } current)
+        {
+            if (useKey) idempotency.Release(key);
+            return ODataError.Create(409, "VERSION_CONFLICT",
+                $"Version {input.ExternalVersion} of {input.ExternalReference} is out of date; the current version is {current}",
+                facts: new Dictionary<string, object> { ["currentVersion"] = current });
+        }
+
+        var created = store.Create(input!, remote.DocumentIdFor(input!.ExternalReference!));
         var location = $"{EntitySet}('{created.PurchaseRequisition}')";
         var etag = ETags.For(created.Version);
         // Serialize once so an idempotent replay is byte-for-byte the original response.
@@ -85,7 +117,7 @@ app.MapPost(EntitySet, async (HttpContext context, SapStore store, IdempotencySt
     .WithTags("PurchaseRequisition")
     .WithSummary("Create a purchase requisition (deep insert with items). Honors Idempotency-Key unless disabled.");
 
-app.MapGet(EntitySet, (SapStore store, HttpRequest request,
+app.MapGet(EntitySet, (SapStore store, HttpRequest request, FaultInjector faults,
         [FromQuery(Name = "$filter")] string? filter,
         [FromQuery(Name = "$top")] int? top,
         [FromQuery(Name = "$skiptoken")] string? skipToken) =>
@@ -95,7 +127,8 @@ app.MapGet(EntitySet, (SapStore store, HttpRequest request,
 
         if (filter is not null && Filters.ExternalReference().Match(filter) is { Success: true } byRef)
         {
-            return Results.Json(new Dictionary<string, object> { ["value"] = store.FindByExternalReference(byRef.Groups[1].Value) });
+            IReadOnlyList<SapRequisition> found = faults.Settings.ReferenceSearchLag ? [] : store.FindByExternalReference(byRef.Groups[1].Value);
+            return Results.Json(new Dictionary<string, object> { ["value"] = found });
         }
 
         DateTime? since = null;
@@ -175,14 +208,29 @@ admin.MapPost("/requisitions/{number}/lifecycle", (string number, LifecycleChang
 admin.MapPost("/requisitions/{number}/touch", (string number, SapStore store) =>
     store.Touch(number) is { } pr ? Results.Json(pr) : Results.NotFound());
 admin.MapGet("/stats", (SapStore store) => Results.Ok(store.Stats()));
-admin.MapPost("/reset", (SapStore store, IdempotencyStore idempotency) =>
+admin.MapPost("/reset", (SapStore store, IdempotencyStore idempotency, WorkbookRemote remote, Dataset? dataset) =>
 {
-    store.Reset();
+    remote.Reset(dataset ?? remote.Dataset, store);
     idempotency.Reset();
     return Results.NoContent();
-});
+})
+.WithSummary("Reset SAP: dataset=Workbook (pre-existing documents and the workbook's failure schedule, default) or Generated (empty).");
 
 app.Run();
+
+static string? ReferenceOf(string raw)
+{
+    try
+    {
+        using var doc = JsonDocument.Parse(raw);
+        return doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.TryGetProperty("ExternalReference", out var r)
+            && r.ValueKind == JsonValueKind.String ? r.GetString() : null;
+    }
+    catch (JsonException)
+    {
+        return null;
+    }
+}
 
 namespace Mocks.SapApi
 {

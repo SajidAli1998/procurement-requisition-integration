@@ -11,27 +11,30 @@ using Mocks.SourceApi;
 
 namespace Procurement.ScenarioTests.Infrastructure;
 
-public sealed class SourceApiFactory : WebApplicationFactory<SourceApiMarker>
+/// <param name="dataset">Workbook (the client's data) or Generated (our 250-record stress set, which most scenarios use).</param>
+public sealed class SourceApiFactory(string dataset = "Generated") : WebApplicationFactory<SourceApiMarker>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        builder.UseSetting("Dataset:Source", dataset);
         builder.UseSetting("RateLimit:PermitsPerSecond", "0");
         builder.UseSetting("Logging:LogLevel:Default", "Warning");
     }
 }
 
-public sealed class SapApiFactory : WebApplicationFactory<SapApiMarker>
+public sealed class SapApiFactory(string dataset = "Generated") : WebApplicationFactory<SapApiMarker>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        builder.UseSetting("Dataset:Source", dataset);
         builder.UseSetting("RateLimit:PermitsPerSecond", "0");
         builder.UseSetting("Logging:LogLevel:Default", "Warning");
     }
 }
 
-public sealed class AssistantApiFactory(SourceApiFactory source, string syncStore) : WebApplicationFactory<AssistantApiMarker>
+public sealed class AssistantApiFactory(SourceApiFactory source, string syncStore, string dataset = "Generated") : WebApplicationFactory<AssistantApiMarker>
 {
     public static readonly AuthOptions Auth = new()
     {
@@ -47,6 +50,7 @@ public sealed class AssistantApiFactory(SourceApiFactory source, string syncStor
         builder.UseSetting("Assistant:SourceBaseUrl", "http://localhost/");
         builder.UseSetting("Assistant:RequestsPerMinute", "1000");
         builder.UseSetting("ConnectionStrings:SyncStore", syncStore);
+        builder.UseSetting("Dataset:Source", dataset);
         builder.ConfigureTestServices(services =>
             services.AddHttpClient(nameof(SourceRequisitionsClient)).ConfigurePrimaryHttpMessageHandler(() => source.Server.CreateHandler()));
     }

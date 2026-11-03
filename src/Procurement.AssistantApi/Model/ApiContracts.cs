@@ -48,7 +48,9 @@ public sealed record ValidationResult(
     bool Valid,
     [property: Description("Total at catalogue prices, when all lines are valid")] decimal? EstimatedTotal,
     string? Currency,
-    IReadOnlyList<ValidationIssue> Issues);
+    IReadOnlyList<ValidationIssue> Issues,
+    [property: Description("When valid: the request in plain words. Show it to the user and ask them to confirm.")] string? ConfirmationSummary = null,
+    [property: Description("When valid: send as the X-User-Confirmation header on create, only after the user confirmed the summary. Bound to this exact request.")] string? ConfirmationToken = null);
 
 /// <summary>Closed set of statuses the assistant can report to the user.</summary>
 public enum RequestStatus

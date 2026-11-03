@@ -1,0 +1,121 @@
+Source_Requisition_ID,Source_Version,Processing_Result,Remote_Document_ID,Attempts,Failure_Category,Explanation,SAP_Responses
+REQ-7001,1,Duplicate,MOCK-SAP-50001,1,Idempotency,Already in SAP as MOCK-SAP-50001: existing document linked and not created again,
+REQ-7002,2,Created,MOCK-SAP-50002,2,Version conflict,Created after version refresh (v2 → v3) as MOCK-SAP-50002,"409,201"
+REQ-7003,3,Created,MOCK-SAP-50003,3,Rate limit,Created after two rate-limit responses as MOCK-SAP-50003,"429,429,201"
+REQ-7004,4,Created,MOCK-SAP-50004,3,Transient service,Created after two transient failures as MOCK-SAP-50004,"503,503,201"
+REQ-7005,1,Created,MOCK-SAP-50005,1,None,Created successfully as MOCK-SAP-50005,201
+REQ-7006,2,Created,MOCK-SAP-50006,1,None,Created successfully as MOCK-SAP-50006,201
+REQ-7007,3,Created,MOCK-SAP-50007,1,None,Created successfully as MOCK-SAP-50007,201
+REQ-7008,4,Created,MOCK-SAP-50008,1,None,Created successfully as MOCK-SAP-50008,201
+REQ-7009,1,Created,MOCK-SAP-50009,1,None,Created successfully as MOCK-SAP-50009,201
+REQ-7010,2,Created,MOCK-SAP-50010,1,None,Created successfully as MOCK-SAP-50010,201
+REQ-7011,3,Duplicate,MOCK-SAP-50011,1,Idempotency,Already in SAP as MOCK-SAP-50011: existing document linked and not created again,
+REQ-7012,4,Created,MOCK-SAP-50012,2,Version conflict,Created after version refresh (v4 → v5) as MOCK-SAP-50012,"409,201"
+REQ-7013,1,Created,MOCK-SAP-50013,3,Rate limit,Created after two rate-limit responses as MOCK-SAP-50013,"429,429,201"
+REQ-7014,2,Created,MOCK-SAP-50014,3,Transient service,Created after two transient failures as MOCK-SAP-50014,"503,503,201"
+REQ-7015,3,Created,MOCK-SAP-50015,1,None,Created successfully as MOCK-SAP-50015,201
+REQ-7016,4,Created,MOCK-SAP-50016,1,None,Created successfully as MOCK-SAP-50016,201
+REQ-7017,1,Created,MOCK-SAP-50017,1,None,Created successfully as MOCK-SAP-50017,201
+REQ-7018,2,Created,MOCK-SAP-50018,1,None,Created successfully as MOCK-SAP-50018,201
+REQ-7019,3,Created,MOCK-SAP-50019,1,None,Created successfully as MOCK-SAP-50019,201
+REQ-7020,4,Created,MOCK-SAP-50020,1,None,Created successfully as MOCK-SAP-50020,201
+REQ-7021,1,Duplicate,MOCK-SAP-50021,1,Idempotency,Already in SAP as MOCK-SAP-50021: existing document linked and not created again,
+REQ-7022,2,Created,MOCK-SAP-50022,2,Version conflict,Created after version refresh (v2 → v3) as MOCK-SAP-50022,"409,201"
+REQ-7023,3,Created,MOCK-SAP-50023,3,Rate limit,Created after two rate-limit responses as MOCK-SAP-50023,"429,429,201"
+REQ-7024,4,Created,MOCK-SAP-50024,3,Transient service,Created after two transient failures as MOCK-SAP-50024,"503,503,201"
+REQ-7025,1,Created,MOCK-SAP-50025,1,None,Created successfully as MOCK-SAP-50025,201
+REQ-7026,2,Created,MOCK-SAP-50026,1,None,Created successfully as MOCK-SAP-50026,201
+REQ-7027,3,Created,MOCK-SAP-50027,1,None,Created successfully as MOCK-SAP-50027,201
+REQ-7028,4,Created,MOCK-SAP-50028,1,None,Created successfully as MOCK-SAP-50028,201
+REQ-7029,1,Created,MOCK-SAP-50029,1,None,Created successfully as MOCK-SAP-50029,201
+REQ-7030,2,Created,MOCK-SAP-50030,1,None,Created successfully as MOCK-SAP-50030,201
+REQ-7031,3,Duplicate,MOCK-SAP-50031,1,Idempotency,Already in SAP as MOCK-SAP-50031: existing document linked and not created again,
+REQ-7032,4,Created,MOCK-SAP-50032,2,Version conflict,Created after version refresh (v4 → v5) as MOCK-SAP-50032,"409,201"
+REQ-7033,1,Created,MOCK-SAP-50033,3,Rate limit,Created after two rate-limit responses as MOCK-SAP-50033,"429,429,201"
+REQ-7034,2,Created,MOCK-SAP-50034,3,Transient service,Created after two transient failures as MOCK-SAP-50034,"503,503,201"
+REQ-7035,3,Created,MOCK-SAP-50035,1,None,Created successfully as MOCK-SAP-50035,201
+REQ-7036,4,Created,MOCK-SAP-50036,1,None,Created successfully as MOCK-SAP-50036,201
+REQ-7037,1,Created,MOCK-SAP-50037,1,None,Created successfully as MOCK-SAP-50037,201
+REQ-7038,2,Created,MOCK-SAP-50038,1,None,Created successfully as MOCK-SAP-50038,201
+REQ-7039,3,Created,MOCK-SAP-50039,1,None,Created successfully as MOCK-SAP-50039,201
+REQ-7040,4,Created,MOCK-SAP-50040,1,None,Created successfully as MOCK-SAP-50040,201
+REQ-7041,1,Duplicate,MOCK-SAP-50041,1,Idempotency,Already in SAP as MOCK-SAP-50041: existing document linked and not created again,
+REQ-7042,2,Created,MOCK-SAP-50042,2,Version conflict,Created after version refresh (v2 → v3) as MOCK-SAP-50042,"409,201"
+REQ-7043,3,Created,MOCK-SAP-50043,3,Rate limit,Created after two rate-limit responses as MOCK-SAP-50043,"429,429,201"
+REQ-7044,4,Created,MOCK-SAP-50044,3,Transient service,Created after two transient failures as MOCK-SAP-50044,"503,503,201"
+REQ-7045,1,Created,MOCK-SAP-50045,1,None,Created successfully as MOCK-SAP-50045,201
+REQ-7046,2,Created,MOCK-SAP-50046,1,None,Created successfully as MOCK-SAP-50046,201
+REQ-7047,3,Created,MOCK-SAP-50047,1,None,Created successfully as MOCK-SAP-50047,201
+REQ-7048,4,Created,MOCK-SAP-50048,1,None,Created successfully as MOCK-SAP-50048,201
+REQ-7049,1,Created,MOCK-SAP-50049,1,None,Created successfully as MOCK-SAP-50049,201
+REQ-7050,2,Created,MOCK-SAP-50050,1,None,Created successfully as MOCK-SAP-50050,201
+REQ-7051,3,Duplicate,MOCK-SAP-50051,1,Idempotency,Already in SAP as MOCK-SAP-50051: existing document linked and not created again,
+REQ-7052,4,Created,MOCK-SAP-50052,2,Version conflict,Created after version refresh (v4 → v5) as MOCK-SAP-50052,"409,201"
+REQ-7053,1,Created,MOCK-SAP-50053,3,Rate limit,Created after two rate-limit responses as MOCK-SAP-50053,"429,429,201"
+REQ-7054,2,Created,MOCK-SAP-50054,3,Transient service,Created after two transient failures as MOCK-SAP-50054,"503,503,201"
+REQ-7055,3,Created,MOCK-SAP-50055,1,None,Created successfully as MOCK-SAP-50055,201
+REQ-7056,4,Created,MOCK-SAP-50056,1,None,Created successfully as MOCK-SAP-50056,201
+REQ-7057,1,Created,MOCK-SAP-50057,1,None,Created successfully as MOCK-SAP-50057,201
+REQ-7058,2,Created,MOCK-SAP-50058,1,None,Created successfully as MOCK-SAP-50058,201
+REQ-7059,3,Created,MOCK-SAP-50059,1,None,Created successfully as MOCK-SAP-50059,201
+REQ-7060,4,Created,MOCK-SAP-50060,1,None,Created successfully as MOCK-SAP-50060,201
+REQ-7061,1,Duplicate,MOCK-SAP-50061,1,Idempotency,Already in SAP as MOCK-SAP-50061: existing document linked and not created again,
+REQ-7062,2,Created,MOCK-SAP-50062,2,Version conflict,Created after version refresh (v2 → v3) as MOCK-SAP-50062,"409,201"
+REQ-7063,3,Created,MOCK-SAP-50063,3,Rate limit,Created after two rate-limit responses as MOCK-SAP-50063,"429,429,201"
+REQ-7064,4,Created,MOCK-SAP-50064,3,Transient service,Created after two transient failures as MOCK-SAP-50064,"503,503,201"
+REQ-7065,1,Created,MOCK-SAP-50065,1,None,Created successfully as MOCK-SAP-50065,201
+REQ-7066,2,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-7067,3,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-7068,4,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-7069,1,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-7070,2,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-7071,3,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7072,4,Quarantined,,1,Validation,neededBy is missing,
+REQ-7073,1,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7074,2,Quarantined,,1,Validation,neededBy is missing,
+REQ-7075,3,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7076,4,Quarantined,,1,Validation,neededBy is missing,
+REQ-7077,1,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7078,2,Quarantined,,1,Validation,neededBy is missing,
+REQ-7079,3,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7080,4,Quarantined,,1,Validation,neededBy is missing,
+REQ-7081,1,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7082,2,Quarantined,,1,Validation,neededBy is missing,
+REQ-7083,3,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7084,4,Quarantined,,1,Validation,neededBy is missing,
+REQ-7085,1,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7086,2,Quarantined,,1,Validation,neededBy is missing,
+REQ-7087,3,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7088,4,Quarantined,,1,Validation,neededBy is missing,
+REQ-7089,1,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7090,2,Quarantined,,1,Validation,neededBy is missing,
+REQ-7091,3,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7092,4,Quarantined,,1,Validation,neededBy is missing,
+REQ-7093,1,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7094,2,Quarantined,,1,Validation,neededBy is missing,
+REQ-7095,3,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7096,4,Quarantined,,1,Validation,neededBy is missing,
+REQ-7097,1,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7098,2,Quarantined,,1,Validation,neededBy is missing,
+REQ-7099,3,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7100,4,Quarantined,,1,Validation,neededBy is missing,
+REQ-7101,1,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7102,2,Quarantined,,1,Validation,neededBy is missing,
+REQ-7103,3,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7104,4,Quarantined,,1,Validation,neededBy is missing,
+REQ-7105,1,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7106,2,Quarantined,,1,Validation,neededBy is missing,
+REQ-7107,3,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7108,4,Quarantined,,1,Validation,neededBy is missing,
+REQ-7109,1,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7110,2,Quarantined,,1,Validation,neededBy is missing,
+REQ-7111,3,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7112,4,Quarantined,,1,Validation,neededBy is missing,
+REQ-7113,1,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7114,2,Quarantined,,1,Validation,neededBy is missing,
+REQ-7115,3,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7116,4,Quarantined,,1,Validation,neededBy is missing,
+REQ-7117,1,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7118,2,Quarantined,,1,Validation,neededBy is missing,
+REQ-7119,3,Quarantined,,1,Validation,Total amount must be greater than zero (got 0),
+REQ-7120,4,Quarantined,,1,Validation,neededBy is missing,

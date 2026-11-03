@@ -9,6 +9,8 @@ public sealed class SapStore(MonotonicClock clock)
     public static readonly IReadOnlyDictionary<string, string> PlantCompany = new Dictionary<string, string>
     {
         ["1100"] = "1000", ["1200"] = "1000", ["2100"] = "2000", ["2200"] = "2000",
+        // The client's workbook: one synthetic Qatar entity (our assumption, the workbook has no org codes).
+        ["3100"] = "3000",
     };
 
     private static readonly HashSet<string> Units = ["EA", "BOX", "KG", "L", "M", "H"];
@@ -41,14 +43,15 @@ public sealed class SapStore(MonotonicClock clock)
         return errors;
     }
 
-    public SapRequisition Create(PurchaseRequisitionInput input)
+    /// <param name="number">Document number to use; by default the next 10-digit SAP number.</param>
+    public SapRequisition Create(PurchaseRequisitionInput input, string? number = null)
     {
         lock (_gate)
         {
             var now = clock.UtcNow;
             var pr = new SapRequisition
             {
-                PurchaseRequisition = (_nextNumber++).ToString("D10"),
+                PurchaseRequisition = number ?? (_nextNumber++).ToString("D10"),
                 PurReqnDescription = input.PurReqnDescription,
                 ExternalReference = input.ExternalReference!,
                 ExternalVersion = input.ExternalVersion ?? 0,
@@ -58,6 +61,18 @@ public sealed class SapStore(MonotonicClock clock)
             };
             _rows[pr.PurchaseRequisition] = pr;
             return Clone(pr);
+        }
+    }
+
+    /// <summary>Loads a requisition that existed before the integration started (workbook DUPLICATE rows).</summary>
+    public void Seed(SapRequisition pr, SapLifecycle lifecycle)
+    {
+        lock (_gate)
+        {
+            var now = clock.UtcNow;
+            _rows[pr.PurchaseRequisition] = pr;
+            pr.LastChangeDateTime = now;
+            if (lifecycle != SapLifecycle.Created) SetLifecycleLocked(pr, lifecycle);
         }
     }
 
@@ -126,7 +141,7 @@ public sealed class SapStore(MonotonicClock clock)
                 var next = pr.Lifecycle switch
                 {
                     SapLifecycle.Created => SapLifecycle.InRelease,
-                    SapLifecycle.InRelease => rejectEvery > 0 && long.Parse(pr.PurchaseRequisition) % rejectEvery == 0
+                    SapLifecycle.InRelease => rejectEvery > 0 && NumericPart(pr.PurchaseRequisition) % rejectEvery == 0
                         ? SapLifecycle.Rejected
                         : SapLifecycle.Released,
                     SapLifecycle.Released => SapLifecycle.PoCreated,
@@ -188,6 +203,9 @@ public sealed class SapStore(MonotonicClock clock)
         }
     }
 
+    private static long NumericPart(string number) =>
+        long.TryParse(new string(number.Where(char.IsDigit).ToArray()), out var n) ? n : 0;
+
     private void SetLifecycleLocked(SapRequisition pr, SapLifecycle lifecycle)
     {
         pr.Lifecycle = lifecycle;
@@ -229,6 +247,7 @@ public sealed class SapStore(MonotonicClock clock)
             Plant = i.Plant ?? "",
             CompanyCode = i.CompanyCode ?? "",
             PurchasingGroup = i.PurchasingGroup ?? "001",
+            TaxCode = i.TaxCode,
             DeliveryDate = i.DeliveryDate ?? default,
         }).ToList();
 
@@ -259,6 +278,7 @@ public sealed class SapStore(MonotonicClock clock)
             Plant = i.Plant,
             CompanyCode = i.CompanyCode,
             PurchasingGroup = i.PurchasingGroup,
+            TaxCode = i.TaxCode,
             DeliveryDate = i.DeliveryDate,
             PurchaseOrder = i.PurchaseOrder,
         }).ToList(),

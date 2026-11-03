@@ -83,9 +83,10 @@ public static class SourceRecordParser
                 var uom = lineReader.RequiredString(line, "uom");
                 var price = lineReader.RequiredDecimal(line, "unitPrice");
                 var plant = lineReader.RequiredString(line, "plant");
+                var taxCode = lineReader.OptionalString(line, "taxCode");
                 if (lineReader.Ok)
                 {
-                    lines.Add(new RequisitionLine(lineNo!.Value, material, description!, group, quantity!.Value, uom!, price!.Value, plant!));
+                    lines.Add(new RequisitionLine(lineNo!.Value, material, description!, group, quantity!.Value, uom!, price!.Value, plant!, taxCode));
                 }
             }
         }

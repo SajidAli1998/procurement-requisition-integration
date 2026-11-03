@@ -33,6 +33,7 @@ public sealed record SapItemDto
     public string PurReqnItemCurrency { get; init; } = "";
     public string Plant { get; init; } = "";
     public string CompanyCode { get; init; } = "";
+    public string? TaxCode { get; init; }
     public DateOnly DeliveryDate { get; init; }
     public string? PurchaseOrder { get; init; }
 }
@@ -61,6 +62,7 @@ public sealed record SapItemInput
     public required string Plant { get; init; }
     public required string CompanyCode { get; init; }
     public string PurchasingGroup { get; init; } = "001";
+    public string? TaxCode { get; init; }
     public DateOnly DeliveryDate { get; init; }
 }
 

@@ -1,0 +1,251 @@
+Source_Requisition_ID,Source_Version,Processing_Result,Remote_Document_ID,Attempts,Failure_Category,Explanation,SAP_Responses
+NOID-C9A925B92E6F2F70,1,Quarantined,,1,Validation,id is missing,
+REQ-2026-000001,1,Created,0010000099,1,None,Created successfully as 0010000099,201
+REQ-2026-000002,2,Created,0010000162,1,Lost response,Created after one transient failure and after a lost response was confirmed by lookup as 0010000162,0
+REQ-2026-000003,1,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-2026-000004,2,Created,0010000082,1,None,Created successfully as 0010000082,201
+REQ-2026-000005,1,Created,0010000171,1,None,Created successfully as 0010000171,201
+REQ-2026-000006,2,Created,0010000131,1,None,Created successfully as 0010000131,201
+REQ-2026-000007,1,Created,0010000006,1,None,Created successfully as 0010000006,201
+REQ-2026-000008,3,Quarantined,,1,Rejected by SAP,SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000,400
+REQ-2026-000009,3,Created,0010000159,1,None,Created successfully as 0010000159,201
+REQ-2026-000010,3,Created,0010000150,1,None,Created successfully as 0010000150,201
+REQ-2026-000011,1,Skipped,,0,Not approved,Source approval status is Draft,
+REQ-2026-000012,1,Created,0010000074,2,Lost response,Created after two transient failures and after a lost response was confirmed by lookup as 0010000074,"503,0"
+REQ-2026-000013,3,Created,0010000101,1,None,Created successfully as 0010000101,201
+REQ-2026-000014,2,Quarantined,,1,Validation,Requisition has no lines,
+REQ-2026-000015,2,Created,0010000030,1,None,Created successfully as 0010000030,201
+REQ-2026-000016,2,Skipped,,0,Not approved,Source approval status is Cancelled,
+REQ-2026-000017,3,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-2026-000018,1,Created,0010000067,1,None,Created successfully as 0010000067,201
+REQ-2026-000019,3,Created,0010000116,1,None,Created successfully as 0010000116,201
+REQ-2026-000020,3,Skipped,,0,Not approved,Source approval status is Draft,
+REQ-2026-000021,3,Created,0010000002,1,None,Created successfully as 0010000002,201
+REQ-2026-000022,3,Created,0010000090,1,None,Created successfully as 0010000090,201
+REQ-2026-000023,3,Created,0010000042,1,None,Created successfully as 0010000042,201
+REQ-2026-000024,3,Created,0010000120,1,None,Created successfully as 0010000120,201
+REQ-2026-000025,1,Created,0010000078,1,None,Created successfully as 0010000078,201
+REQ-2026-000026,2,Created,0010000077,1,None,Created successfully as 0010000077,201
+REQ-2026-000027,1,Created,0010000062,1,Lost response,Created after one transient failure and after a lost response was confirmed by lookup as 0010000062,0
+REQ-2026-000028,2,Created,0010000011,2,Transient service,Created after one transient failure as 0010000011,"503,201"
+REQ-2026-000029,1,Quarantined,,1,Validation,Line 10: quantity -5 must be greater than zero,
+REQ-2026-000030,2,Created,0010000061,1,None,Created successfully as 0010000061,201
+REQ-2026-000031,1,Created,0010000172,1,None,Created successfully as 0010000172,201
+REQ-2026-000032,1,Created,0010000152,1,None,Created successfully as 0010000152,201
+REQ-2026-000033,1,Created,0010000115,1,None,Created successfully as 0010000115,201
+REQ-2026-000034,1,Created,0010000130,1,None,Created successfully as 0010000130,201
+REQ-2026-000035,2,Skipped,,0,Not approved,Source approval status is Rejected,
+REQ-2026-000036,2,Created,0010000020,1,None,Created successfully as 0010000020,201
+REQ-2026-000037,3,Created,0010000089,1,None,Created successfully as 0010000089,201
+REQ-2026-000038,3,Created,0010000051,1,None,Created successfully as 0010000051,201
+REQ-2026-000039,1,Created,0010000118,1,None,Created successfully as 0010000118,201
+REQ-2026-000040,2,Skipped,,0,Not approved,Source approval status is Draft,
+REQ-2026-000041,1,Created,0010000180,1,None,Created successfully as 0010000180,201
+REQ-2026-000042,3,Created,0010000145,2,Transient service,Created after one transient failure as 0010000145,"503,201"
+REQ-2026-000043,2,Skipped,,0,Not approved,Source approval status is Rejected,
+REQ-2026-000044,1,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-2026-000045,2,Quarantined,,1,Validation,Currency 'XYZ' is not a supported ISO 4217 code,
+REQ-2026-000046,1,Created,0010000068,1,None,Created successfully as 0010000068,201
+REQ-2026-000047,3,Created,0010000144,1,None,Created successfully as 0010000144,201
+REQ-2026-000048,3,Skipped,,0,Not approved,Source approval status is Rejected,
+REQ-2026-000049,2,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-2026-000050,1,Created,0010000167,1,None,Created successfully as 0010000167,201
+REQ-2026-000051,2,Created,0010000048,3,Rate limit,Created after one rate-limit response and after one transient failure as 0010000048,"429,503,201"
+REQ-2026-000052,2,Created,0010000040,2,Rate limit,Created after one rate-limit response as 0010000040,"429,201"
+REQ-2026-000053,2,Skipped,,0,Not approved,Source approval status is Rejected,
+REQ-2026-000054,2,Created,0010000050,1,None,Created successfully as 0010000050,201
+REQ-2026-000055,1,Skipped,,0,Not approved,Source approval status is Cancelled,
+REQ-2026-000056,1,Created,0010000036,1,None,Created successfully as 0010000036,201
+REQ-2026-000057,1,Created,0010000151,1,None,Created successfully as 0010000151,201
+REQ-2026-000058,1,Created,0010000043,1,None,Created successfully as 0010000043,201
+REQ-2026-000059,2,Created,0010000063,1,None,Created successfully as 0010000063,201
+REQ-2026-000060,2,Quarantined,,3,Rejected by SAP,SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000,"503,503,400"
+REQ-2026-000061,1,Quarantined,,1,Validation,Line 10: unit of measure 'BUCKET' is not recognised,
+REQ-2026-000062,3,Created,0010000163,1,None,Created successfully as 0010000163,201
+REQ-2026-000063,2,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-2026-000064,2,Created,0010000029,1,None,Created successfully as 0010000029,201
+REQ-2026-000065,3,Created,0010000100,1,None,Created successfully as 0010000100,201
+REQ-2026-000066,1,Created,0010000148,1,None,Created successfully as 0010000148,201
+REQ-2026-000067,3,Created,0010000153,1,None,Created successfully as 0010000153,201
+REQ-2026-000068,3,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-2026-000069,2,Created,0010000049,1,None,Created successfully as 0010000049,201
+REQ-2026-000070,3,Created,0010000047,2,Transient service,Created after one transient failure as 0010000047,"503,201"
+REQ-2026-000071,1,Created,0010000014,1,None,Created successfully as 0010000014,201
+REQ-2026-000072,2,Created,0010000046,1,None,Created successfully as 0010000046,201
+REQ-2026-000073,1,Created,0010000039,1,None,Created successfully as 0010000039,201
+REQ-2026-000074,2,Created,0010000017,1,None,Created successfully as 0010000017,201
+REQ-2026-000075,2,Skipped,,0,Not approved,Source approval status is Cancelled,
+REQ-2026-000076,1,Quarantined,,1,Validation,neededBy 2026-10-24 is in the past,
+REQ-2026-000077,2,Created,0010000146,1,None,Created successfully as 0010000146,201
+REQ-2026-000078,3,Created,0010000058,1,None,Created successfully as 0010000058,201
+REQ-2026-000079,2,Created,0010000135,1,None,Created successfully as 0010000135,201
+REQ-2026-000080,1,Created,0010000139,1,None,Created successfully as 0010000139,201
+REQ-2026-000081,1,Created,0010000008,1,None,Created successfully as 0010000008,201
+REQ-2026-000082,2,Skipped,,0,Not approved,Source approval status is Rejected,
+REQ-2026-000083,3,Created,0010000027,2,Rate limit,Created after one rate-limit response as 0010000027,"429,201"
+REQ-2026-000084,2,Created,0010000132,1,None,Created successfully as 0010000132,201
+REQ-2026-000085,1,Created,0010000057,1,None,Created successfully as 0010000057,201
+REQ-2026-000086,1,Created,0010000149,2,Rate limit,Created after one rate-limit response as 0010000149,"429,201"
+REQ-2026-000087,1,Created,0010000174,1,None,Created successfully as 0010000174,201
+REQ-2026-000088,3,Created,0010000102,2,Transient service,Created after one transient failure as 0010000102,"503,201"
+REQ-2026-000089,1,Skipped,,0,Not approved,Source approval status is Cancelled,
+REQ-2026-000090,1,Quarantined,,1,Validation,"lines[0].quantity must be a number, got String ""ten""",
+REQ-2026-000091,1,Created,0010000095,1,None,Created successfully as 0010000095,201
+REQ-2026-000092,2,Created,0010000110,2,Rate limit,Created after one rate-limit response as 0010000110,"429,201"
+REQ-2026-000093,1,Created,0010000181,1,None,Created successfully as 0010000181,201
+REQ-2026-000094,2,Created,0010000094,1,None,Created successfully as 0010000094,201
+REQ-2026-000095,2,Created,0010000107,1,None,Created successfully as 0010000107,201
+REQ-2026-000096,1,Created,0010000154,1,None,Created successfully as 0010000154,201
+REQ-2026-000097,3,Created,0010000134,1,None,Created successfully as 0010000134,201
+REQ-2026-000098,1,Created,0010000106,1,None,Created successfully as 0010000106,201
+REQ-2026-000099,3,Created,0010000184,3,Rate limit,Created after two rate-limit responses as 0010000184,"429,429,201"
+REQ-2026-000100,1,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-2026-000101,1,Created,0010000166,1,None,Created successfully as 0010000166,201
+REQ-2026-000102,1,Created,0010000141,2,Transient service,Created after one transient failure as 0010000141,"503,201"
+REQ-2026-000103,2,Quarantined,,1,Validation,totalAmount 4288.96 does not equal the sum of the lines (4188.96),
+REQ-2026-000104,3,Skipped,,0,Not approved,Source approval status is Rejected,
+REQ-2026-000105,2,Created,0010000129,1,None,Created successfully as 0010000129,201
+REQ-2026-000106,2,Created,0010000133,1,None,Created successfully as 0010000133,201
+REQ-2026-000107,2,Quarantined,,1,Rejected by SAP,SAP rejected the requisition: Item 00010: plant 2100 is not assigned to company code 1000,400
+REQ-2026-000108,2,Created,0010000028,1,None,Created successfully as 0010000028,201
+REQ-2026-000109,3,Created,0010000155,2,Transient service,Created after one transient failure as 0010000155,"503,201"
+REQ-2026-000110,3,Created,0010000022,1,None,Created successfully as 0010000022,201
+REQ-2026-000111,3,Created,0010000121,1,None,Created successfully as 0010000121,201
+REQ-2026-000112,3,Created,0010000092,1,None,Created successfully as 0010000092,201
+REQ-2026-000113,3,Created,0010000018,1,None,Created successfully as 0010000018,201
+REQ-2026-000114,2,Created,0010000142,2,Transient service,Created after one transient failure as 0010000142,"503,201"
+REQ-2026-000115,3,Created,0010000009,1,None,Created successfully as 0010000009,201
+REQ-2026-000116,2,Quarantined,,1,Validation,requester is missing,
+REQ-2026-000117,1,Created,0010000123,1,None,Created successfully as 0010000123,201
+REQ-2026-000118,2,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-2026-000119,1,Created,0010000105,1,None,Created successfully as 0010000105,201
+REQ-2026-000120,2,Created,0010000156,2,Rate limit,Created after one rate-limit response as 0010000156,"429,201"
+REQ-2026-000121,1,Created,0010000179,1,None,Created successfully as 0010000179,201
+REQ-2026-000122,1,Created,0010000081,1,None,Created successfully as 0010000081,201
+REQ-2026-000123,2,Created,0010000175,2,Transient service,Created after one transient failure as 0010000175,"503,201"
+REQ-2026-000124,2,Created,0010000044,1,None,Created successfully as 0010000044,201
+REQ-2026-000125,3,Created,0010000137,1,None,Created successfully as 0010000137,201
+REQ-2026-000126,1,Created,0010000168,1,None,Created successfully as 0010000168,201
+REQ-2026-000127,1,Created,0010000031,1,None,Created successfully as 0010000031,201
+REQ-2026-000128,3,Created,0010000059,1,None,Created successfully as 0010000059,201
+REQ-2026-000129,1,Quarantined,,1,Validation,neededBy '31/02/2026' is not a valid yyyy-MM-dd date,
+REQ-2026-000130,1,Created,0010000001,1,None,Created successfully as 0010000001,201
+REQ-2026-000131,1,Created,0010000103,1,None,Created successfully as 0010000103,201
+REQ-2026-000132,3,Created,0010000005,2,Rate limit,Created after one rate-limit response as 0010000005,"429,201"
+REQ-2026-000133,2,Created,0010000021,1,None,Created successfully as 0010000021,201
+REQ-2026-000134,3,Skipped,,0,Not approved,Source approval status is Rejected,
+REQ-2026-000135,2,Created,0010000010,2,Transient service,Created after one transient failure as 0010000010,"503,201"
+REQ-2026-000136,2,Created,0010000045,1,None,Created successfully as 0010000045,201
+REQ-2026-000137,1,Skipped,,0,Not approved,Source approval status is Cancelled,
+REQ-2026-000138,2,Created,0010000114,3,Rate limit,Created after two rate-limit responses as 0010000114,"429,429,201"
+REQ-2026-000139,1,Created,0010000119,2,Transient service,Created after one transient failure as 0010000119,"503,201"
+REQ-2026-000140,2,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-2026-000141,2,Created,0010000086,1,None,Created successfully as 0010000086,201
+REQ-2026-000142,2,Created,0010000125,1,None,Created successfully as 0010000125,201
+REQ-2026-000143,3,Created,0010000084,1,None,Created successfully as 0010000084,201
+REQ-2026-000145,2,Created,0010000158,1,None,Created successfully as 0010000158,201
+REQ-2026-000146,1,Created,0010000096,1,None,Created successfully as 0010000096,201
+REQ-2026-000147,3,Created,0010000019,2,Transient service,Created after one transient failure as 0010000019,"503,201"
+REQ-2026-000148,1,Created,0010000104,1,None,Created successfully as 0010000104,201
+REQ-2026-000149,3,Created,0010000113,1,None,Created successfully as 0010000113,201
+REQ-2026-000150,3,Created,0010000083,1,None,Created successfully as 0010000083,201
+REQ-2026-000151,3,Quarantined,,1,Rejected by SAP,SAP rejected the requisition: Item 00010: plant 2100 is not assigned to company code 1000,400
+REQ-2026-000152,1,Skipped,,0,Not approved,Source approval status is Rejected,
+REQ-2026-000153,1,Created,0010000088,1,None,Created successfully as 0010000088,201
+REQ-2026-000154,2,Skipped,,0,Not approved,Source approval status is Draft,
+REQ-2026-000155,3,Created,0010000007,1,None,Created successfully as 0010000007,201
+REQ-2026-000156,3,Created,0010000173,1,None,Created successfully as 0010000173,201
+REQ-2026-000157,2,Created,0010000075,2,Transient service,Created after one transient failure as 0010000075,"503,201"
+REQ-2026-000158,2,Quarantined,,1,Validation,Requisition has no lines,
+REQ-2026-000159,1,Created,0010000170,1,None,Created successfully as 0010000170,201
+REQ-2026-000160,3,Created,0010000124,1,None,Created successfully as 0010000124,201
+REQ-2026-000161,2,Skipped,,0,Not approved,Source approval status is Draft,
+REQ-2026-000162,2,Created,0010000108,1,None,Created successfully as 0010000108,201
+REQ-2026-000163,1,Created,0010000140,1,None,Created successfully as 0010000140,201
+REQ-2026-000164,3,Created,0010000053,1,None,Created successfully as 0010000053,201
+REQ-2026-000165,1,Created,0010000023,1,None,Created successfully as 0010000023,201
+REQ-2026-000166,1,Created,0010000065,1,None,Created successfully as 0010000065,201
+REQ-2026-000167,1,Created,0010000080,1,None,Created successfully as 0010000080,201
+REQ-2026-000168,3,Created,0010000066,1,None,Created successfully as 0010000066,201
+REQ-2026-000169,1,Created,0010000091,1,None,Created successfully as 0010000091,201
+REQ-2026-000170,3,Created,0010000136,1,None,Created successfully as 0010000136,201
+REQ-2026-000171,1,Quarantined,,1,Validation,Line 10: quantity -5 must be greater than zero,
+REQ-2026-000172,1,Skipped,,0,Not approved,Source approval status is Cancelled,
+REQ-2026-000173,3,Created,0010000041,1,None,Created successfully as 0010000041,201
+REQ-2026-000174,3,Skipped,,0,Not approved,Source approval status is Rejected,
+REQ-2026-000175,1,Skipped,,0,Not approved,Source approval status is Cancelled,
+REQ-2026-000176,2,Created,0010000143,1,None,Created successfully as 0010000143,201
+REQ-2026-000177,2,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-2026-000178,3,Created,0010000069,2,Rate limit,Created after one rate-limit response as 0010000069,"429,201"
+REQ-2026-000179,3,Created,0010000012,2,Transient service,Created after one transient failure as 0010000012,"503,201"
+REQ-2026-000180,2,Created,0010000025,1,None,Created successfully as 0010000025,201
+REQ-2026-000181,2,Created,0010000122,1,None,Created successfully as 0010000122,201
+REQ-2026-000182,2,Created,0010000079,1,None,Created successfully as 0010000079,201
+REQ-2026-000183,3,Created,0010000033,1,None,Created successfully as 0010000033,201
+REQ-2026-000184,2,Created,0010000056,1,None,Created successfully as 0010000056,201
+REQ-2026-000185,3,Created,0010000087,1,None,Created successfully as 0010000087,201
+REQ-2026-000186,3,Created,0010000112,1,None,Created successfully as 0010000112,201
+REQ-2026-000187,3,Skipped,,0,Not approved,Source approval status is Rejected,
+REQ-2026-000188,2,Quarantined,,1,Validation,Currency 'XYZ' is not a supported ISO 4217 code,
+REQ-2026-000189,3,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-2026-000190,2,Skipped,,0,Not approved,Source approval status is Draft,
+REQ-2026-000191,2,Created,0010000037,1,None,Created successfully as 0010000037,201
+REQ-2026-000192,1,Created,0010000064,1,None,Created successfully as 0010000064,201
+REQ-2026-000193,2,Created,0010000034,1,None,Created successfully as 0010000034,201
+REQ-2026-000194,3,Created,0010000111,1,None,Created successfully as 0010000111,201
+REQ-2026-000195,3,Created,0010000052,1,None,Created successfully as 0010000052,201
+REQ-2026-000196,1,Created,0010000178,1,None,Created successfully as 0010000178,201
+REQ-2026-000197,2,Created,0010000147,2,Transient service,Created after one transient failure as 0010000147,"503,201"
+REQ-2026-000198,3,Created,0010000015,1,None,Created successfully as 0010000015,201
+REQ-2026-000199,2,Skipped,,0,Not approved,Source approval status is Rejected,
+REQ-2026-000200,3,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-2026-000201,1,Created,0010000164,1,None,Created successfully as 0010000164,201
+REQ-2026-000202,2,Created,0010000157,1,None,Created successfully as 0010000157,201
+REQ-2026-000203,1,Quarantined,,1,Rejected by SAP,SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000,400
+REQ-2026-000204,1,Quarantined,,1,Validation,Line 10: unit of measure 'BUCKET' is not recognised,
+REQ-2026-000205,3,Created,0010000071,1,None,Created successfully as 0010000071,201
+REQ-2026-000206,3,Created,0010000055,2,Transient service,Created after one transient failure as 0010000055,"503,201"
+REQ-2026-000207,3,Created,0010000127,1,None,Created successfully as 0010000127,201
+REQ-2026-000208,3,Created,0010000004,2,Rate limit,Created after one rate-limit response as 0010000004,"429,201"
+REQ-2026-000209,1,Created,0010000093,1,None,Created successfully as 0010000093,201
+REQ-2026-000210,3,Created,0010000128,1,None,Created successfully as 0010000128,201
+REQ-2026-000211,1,Created,0010000097,1,None,Created successfully as 0010000097,201
+REQ-2026-000212,2,Created,0010000117,1,None,Created successfully as 0010000117,201
+REQ-2026-000213,3,Created,0010000038,1,None,Created successfully as 0010000038,201
+REQ-2026-000214,1,Created,0010000013,1,None,Created successfully as 0010000013,201
+REQ-2026-000215,3,Created,0010000165,2,Rate limit,Created after one rate-limit response as 0010000165,"429,201"
+REQ-2026-000216,1,Quarantined,,1,Validation,neededBy 2026-10-24 is in the past,
+REQ-2026-000217,2,Created,0010000072,1,None,Created successfully as 0010000072,201
+REQ-2026-000218,3,Created,0010000098,1,None,Created successfully as 0010000098,201
+REQ-2026-000219,1,Created,0010000177,1,None,Created successfully as 0010000177,201
+REQ-2026-000220,3,Created,0010000073,2,Transient service,Created after one transient failure as 0010000073,"503,201"
+REQ-2026-000221,2,Created,0010000060,1,None,Created successfully as 0010000060,201
+REQ-2026-000222,2,Created,0010000076,1,None,Created successfully as 0010000076,201
+REQ-2026-000223,2,Created,0010000054,1,None,Created successfully as 0010000054,201
+REQ-2026-000224,3,Created,0010000182,1,None,Created successfully as 0010000182,201
+REQ-2026-000225,2,Created,0010000160,1,None,Created successfully as 0010000160,201
+REQ-2026-000226,1,Created,0010000109,1,None,Created successfully as 0010000109,201
+REQ-2026-000227,2,Created,0010000176,2,Transient service,Created after one transient failure as 0010000176,"503,201"
+REQ-2026-000228,3,Quarantined,,1,Validation,"lines[0].quantity must be a number, got String ""ten""",
+REQ-2026-000229,1,Created,0010000035,1,None,Created successfully as 0010000035,201
+REQ-2026-000230,3,Created,0010000126,2,Transient service,Created after one transient failure as 0010000126,"503,201"
+REQ-2026-000231,3,Created,0010000183,1,None,Created successfully as 0010000183,201
+REQ-2026-000232,1,Created,0010000169,1,None,Created successfully as 0010000169,201
+REQ-2026-000233,1,Created,0010000003,1,None,Created successfully as 0010000003,201
+REQ-2026-000234,3,Skipped,,0,Not approved,Source approval status is Rejected,
+REQ-2026-000235,1,Created,0010000024,1,None,Created successfully as 0010000024,201
+REQ-2026-000236,1,Created,0010000026,1,None,Created successfully as 0010000026,201
+REQ-2026-000237,1,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-2026-000238,1,Skipped,,0,Not approved,Source approval status is Rejected,
+REQ-2026-000239,3,Created,0010000138,1,None,Created successfully as 0010000138,201
+REQ-2026-000240,3,Created,0010000070,1,None,Created successfully as 0010000070,201
+REQ-2026-000241,3,Created,0010000085,1,None,Created successfully as 0010000085,201
+REQ-2026-000242,2,Skipped,,0,Not approved,Source approval status is Rejected,
+REQ-2026-000243,1,Created,0010000161,1,None,Created successfully as 0010000161,201
+REQ-2026-000244,3,Skipped,,0,Not approved,Source approval status is PendingApproval,
+REQ-2026-000245,2,Quarantined,,1,Validation,totalAmount 7466.67 does not equal the sum of the lines (7366.67),
+REQ-2026-000246,1,Skipped,,0,Not approved,Source approval status is Draft,
+REQ-2026-000247,3,Created,0010000032,1,None,Created successfully as 0010000032,201
+REQ-2026-000248,1,Skipped,,0,Not approved,Source approval status is Cancelled,
+REQ-2026-000249,2,Created,0010000016,1,None,Created successfully as 0010000016,201
+REQ-2026-000250,2,Quarantined,,1,Rejected by SAP,SAP rejected the requisition: Item 00010: plant 1100 is not assigned to company code 2000,400

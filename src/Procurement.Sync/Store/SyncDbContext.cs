@@ -70,6 +70,7 @@ public sealed class SyncDbContext(DbContextOptions<SyncDbContext> options) : DbC
             e.ToTable("RunEvents");
             e.Property(x => x.RunId).HasMaxLength(40);
             e.Property(x => x.SourceKey).HasMaxLength(64);
+            e.Property(x => x.SapResponses).HasMaxLength(200);
             e.HasIndex(x => new { x.RunId, x.Kind });
         });
 

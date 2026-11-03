@@ -22,6 +22,7 @@ public static class SapMapper
             PurReqnItemCurrency = r.Currency,
             Plant = l.Plant,
             CompanyCode = r.CompanyCode,
+            TaxCode = l.TaxCode,
             DeliveryDate = r.NeededBy,
         }).ToList(),
     };
@@ -60,6 +61,7 @@ public static class SapMapper
                 && p.First.PurReqnItemCurrency == p.Second.PurReqnItemCurrency
                 && p.First.Plant == p.Second.Plant
                 && p.First.CompanyCode == p.Second.CompanyCode
+                && p.First.TaxCode == p.Second.TaxCode
                 && p.First.DeliveryDate == p.Second.DeliveryDate);
     }
 

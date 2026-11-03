@@ -262,7 +262,15 @@
         "tags": [
           "Admin"
         ],
+        "summary": "Reload the data: dataset=Workbook (the client's workbook, default) or Generated (seed, count).",
         "parameters": [
+          {
+            "name": "dataset",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Dataset"
+            }
+          },
           {
             "name": "seed",
             "in": "query",
@@ -330,6 +338,13 @@
   },
   "components": {
     "schemas": {
+      "Dataset": {
+        "enum": [
+          "Workbook",
+          "Generated",
+          null
+        ]
+      },
       "ErpStatusUpdate": {
         "required": [
           "erpReference",
@@ -413,6 +428,9 @@
             "type": "boolean"
           },
           "honorIdempotencyKey": {
+            "type": "boolean"
+          },
+          "referenceSearchLag": {
             "type": "boolean"
           },
           "seed": {

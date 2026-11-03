@@ -281,6 +281,16 @@
         "tags": [
           "Admin"
         ],
+        "summary": "Reset SAP: dataset=Workbook (pre-existing documents and the workbook's failure schedule, default) or Generated (empty).",
+        "parameters": [
+          {
+            "name": "dataset",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Dataset"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -291,6 +301,13 @@
   },
   "components": {
     "schemas": {
+      "Dataset": {
+        "enum": [
+          "Workbook",
+          "Generated",
+          null
+        ]
+      },
       "FaultKind": {
         "enum": [
           "None",
@@ -347,6 +364,9 @@
             "type": "boolean"
           },
           "HonorIdempotencyKey": {
+            "type": "boolean"
+          },
+          "ReferenceSearchLag": {
             "type": "boolean"
           },
           "Seed": {

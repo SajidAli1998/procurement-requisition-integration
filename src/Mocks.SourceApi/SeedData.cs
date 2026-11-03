@@ -3,7 +3,11 @@ using System.Text.Json.Nodes;
 
 namespace Mocks.SourceApi;
 
-public sealed record SeedRecord(string Key, long Version, DateTime UpdatedAt, JsonObject Body);
+/// <param name="ListedVersion">
+/// When set, list pages still show this older version while GET by id returns the current one: a concurrent
+/// edit that the list endpoint's read replica has not caught up with yet.
+/// </param>
+public sealed record SeedRecord(string Key, long Version, DateTime UpdatedAt, JsonObject Body, long? ListedVersion = null);
 
 /// <summary>Which records were deliberately broken, so tests and the demo can check the report.</summary>
 public sealed record SeedManifestEntry(string Key, string Status, string? Defect);

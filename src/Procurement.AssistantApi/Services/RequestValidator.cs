@@ -7,7 +7,7 @@ namespace Procurement.AssistantApi.Services;
 /// Validates an assistant's request against the catalogue and policy limits. Every issue carries a field path,
 /// a stable code and a concrete suggestion, so an agent can correct itself without guessing.
 /// </summary>
-public sealed class RequestValidator(IOptions<AssistantOptions> options, TimeProvider time)
+public sealed class RequestValidator(IOptions<AssistantOptions> options, ReferenceCatalogue catalogue, TimeProvider time)
 {
     public ValidationResult Validate(CreateRequisitionRequest request)
     {
@@ -15,18 +15,18 @@ public sealed class RequestValidator(IOptions<AssistantOptions> options, TimePro
         var issues = new List<ValidationIssue>();
         var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
 
-        var costCenter = ReferenceCatalogue.CostCenter(request.CostCenter);
+        var costCenter = catalogue.CostCenter(request.CostCenter);
         if (costCenter is null)
             issues.Add(new("costCenter", "UNKNOWN_COST_CENTER", $"Cost center '{request.CostCenter}' does not exist.",
                 "Pick one from GET /v1/reference/cost-centers."));
 
-        var plant = ReferenceCatalogue.Plant(request.Plant);
+        var plant = catalogue.Plant(request.Plant);
         if (plant is null)
             issues.Add(new("plant", "UNKNOWN_PLANT", $"Plant '{request.Plant}' does not exist.", "Pick one from GET /v1/reference/plants."));
         else if (costCenter is not null && plant.CompanyCode != costCenter.CompanyCode)
             issues.Add(new("plant", "PLANT_NOT_IN_COMPANY",
                 $"Plant {plant.Code} belongs to company {plant.CompanyCode}, but cost center {costCenter.Code} belongs to company {costCenter.CompanyCode}.",
-                $"Use one of: {string.Join(", ", ReferenceCatalogue.Plants.Where(p => p.CompanyCode == costCenter.CompanyCode).Select(p => p.Code))}."));
+                $"Use one of: {string.Join(", ", catalogue.Plants.Where(p => p.CompanyCode == costCenter.CompanyCode).Select(p => p.Code))}."));
 
         if (request.NeededBy <= today || request.NeededBy > today.AddDays(o.MaxNeededByDays))
             issues.Add(new("neededBy", "NEEDED_BY_OUT_OF_RANGE",
@@ -49,7 +49,7 @@ public sealed class RequestValidator(IOptions<AssistantOptions> options, TimePro
         for (var i = 0; i < lines.Count; i++)
         {
             var line = lines[i];
-            var material = ReferenceCatalogue.Material(line.MaterialCode);
+            var material = catalogue.Material(line.MaterialCode);
             if (material is null)
             {
                 priced = false;
@@ -79,6 +79,18 @@ public sealed class RequestValidator(IOptions<AssistantOptions> options, TimePro
                 "Reduce the quantities, split the request, or ask the user to raise it directly with procurement."));
 
         var valid = issues.Count == 0;
-        return new ValidationResult(valid, priced && lines.Count > 0 ? total : null, costCenter?.Currency, issues);
+        return new ValidationResult(valid, priced && lines.Count > 0 ? total : null, costCenter?.Currency, issues,
+            valid ? Summarise(request, total, costCenter!) : null);
+    }
+
+    private string Summarise(CreateRequisitionRequest request, decimal total, CostCenterInfo costCenter)
+    {
+        var lines = request.Lines.Select(l =>
+        {
+            var m = catalogue.Material(l.MaterialCode)!;
+            return $"{l.Quantity:0.###} {m.Uom} {m.Description} ({m.Code}) at {m.UnitPrice:N2}";
+        });
+        return $"Raise a requisition for approval: {string.Join("; ", lines)}. Total {total:N2} {costCenter.Currency}, " +
+            $"charged to {costCenter.Code} ({costCenter.Name}), delivered to plant {request.Plant}, needed by {request.NeededBy:yyyy-MM-dd}.";
     }
 }

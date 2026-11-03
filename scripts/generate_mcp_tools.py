@@ -49,6 +49,12 @@ def main(path):
                     "description": "Sent as the Idempotency-Key header. A new UUID per user intent; reuse only to retry the same request.",
                 }
                 required.append("idempotencyKey")
+                properties["userConfirmation"] = {
+                    "type": "string",
+                    "description": "Sent as the X-User-Confirmation header: the confirmationToken from validateRequisitionRequest, "
+                                   "only after the user agreed to its confirmationSummary.",
+                }
+                required.append("userConfirmation")
             if hints.get("destructiveHint"):
                 properties["ifMatch"] = {"type": "string", "description": "ETag from the latest read; sent as If-Match."}
                 required.append("ifMatch")

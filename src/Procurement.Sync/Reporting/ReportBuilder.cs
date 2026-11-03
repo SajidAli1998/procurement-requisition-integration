@@ -66,6 +66,7 @@ public sealed class ReportBuilder(
             OpenFailures = open.Select(q => new FailureRow(q.SourceKey, q.SourceVersion, q.Stage.ToString(), q.Reason.ToString(), q.Summary,
                 SuggestedActions.For(q.Reason, q.SourceKey), q.FirstSeenAt, q.LastSeenAt, q.Occurrences)).ToList(),
             NotableChanges = events.Where(e => Notable.Contains(e.Kind)).Select(e => new ChangeRow(e.SourceKey, e.Kind.ToString(), e.Detail)).ToList(),
+            Records = RecordOutcomes.Build(events, records.ToDictionary(r => r.SourceId)),
             Pending = records.Where(r => r.State is RecordState.Queued or RecordState.RetryPending or RecordState.InDoubt or RecordState.Sending)
                 .OrderBy(r => r.SourceId).Select(r => new PendingRow(r.SourceId, r.State.ToString(), r.Attempts, r.NextAttemptAt, r.LastError)).ToList(),
         };

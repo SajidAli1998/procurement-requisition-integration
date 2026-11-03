@@ -30,4 +30,7 @@ public static class Scopes
 {
     public const string Draft = "requisitions:draft";
     public const string Read = "requisitions:read";
+
+    /// <summary>Delegated procurement role: may read every requisition, not only the user's own.</summary>
+    public const string ReadAll = "requisitions:read:all";
 }
