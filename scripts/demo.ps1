@@ -1,3 +1,4 @@
+#Requires -Version 7.0
 # Guided demo of the whole solution on the client's synthetic data workbook (PowerShell 7+). Starts the services if needed.
 #   scripts/demo.ps1            pauses between steps
 #   scripts/demo.ps1 -NoPause   runs straight through

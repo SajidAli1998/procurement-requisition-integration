@@ -1,3 +1,4 @@
+#Requires -Version 7.0
 # Builds the solution and starts the three services in the background:
 #   source mock :5101, SAP mock :5102, assistant API :5103.
 # Logs and PIDs go to .run/. Stop them with scripts/stop-all.ps1.

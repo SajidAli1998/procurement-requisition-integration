@@ -27,11 +27,11 @@ All data is synthetic. By default everything runs on **the client's synthetic da
 
 ## Quick start
 
-**Prerequisite:** [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0). Nothing else: no Docker and no database server. The integration uses SQLite by default.
+**Prerequisite:** [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (any 10.0 release). Nothing else: no Docker and no database server. The integration uses SQLite by default. On Windows, the scripts need [PowerShell 7](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows) (`pwsh`), not the built-in Windows PowerShell 5.1.
 
 ```bash
 dotnet test                  # 106 tests, about 40 seconds
-scripts/demo.sh              # guided demo (macOS/Linux); Windows: scripts/demo.ps1
+scripts/demo.sh              # guided demo (macOS/Linux); Windows: pwsh scripts/demo.ps1
 ```
 
 The demo starts three local services on the client's workbook. It runs the sync through the workbook's failure schedule and checks the result against the workbook's expected outcomes. It then walks through quarantine, status sync, the AI assistant API (signed in as the workbook's employees) and reconciliation. It takes about 90 seconds, mostly the workbook's 20-second `Retry-After` waits. Press Enter between steps, or pass `--no-pause` (`-NoPause` in PowerShell). Stop the services afterwards with `scripts/stop-all.sh` (or `scripts/stop-all.ps1`).
