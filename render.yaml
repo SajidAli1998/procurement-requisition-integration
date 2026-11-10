@@ -8,3 +8,9 @@ services:
     envVars:
       - key: TESTLAB_KEY
         generateValue: true
+      - key: TESTLAB_MAX_PARALLELISM
+        value: "1"
+      - key: DOTNET_gcServer
+        value: "0"
+      - key: DOTNET_GCConserveMemory
+        value: "7"

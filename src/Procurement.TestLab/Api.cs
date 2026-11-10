@@ -117,7 +117,7 @@ public static class Api
             {
                 try
                 {
-                    var batch = await ScenarioRunner.RunAsync(selected, new RunRequest { Name = name, Parallelism = req.Parallelism ?? 4, Seed = req.Seed }, e =>
+                    var batch = await ScenarioRunner.RunAsync(selected, new RunRequest { Name = name, Parallelism = Math.Min(req.Parallelism ?? 4, MaxParallelism), Seed = req.Seed, FullEvidence = MaxParallelism > 1 }, e =>
                     {
                         lock (progress.Gate)
                         {
@@ -518,6 +518,10 @@ public static class Api
     }
 
     private static async Task<JsonNode?> Get(HttpClient client, string path) => await client.GetFromJsonAsync<JsonNode>(path);
+
+    // Small hosts (TESTLAB_MAX_PARALLELISM=1) run one lab at a time and keep a trimmed HTTP log per scenario.
+    private static readonly int MaxParallelism =
+        int.TryParse(Environment.GetEnvironmentVariable("TESTLAB_MAX_PARALLELISM"), out var n) && n > 0 ? n : int.MaxValue;
 
     private static readonly JsonSerializerOptions SseJson = new(ScenarioRunner.Json) { WriteIndented = false };
 
