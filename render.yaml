@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: procurement-test-lab
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/lab/health
+    envVars:
+      - key: TESTLAB_KEY
+        generateValue: true

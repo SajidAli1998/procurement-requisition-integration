@@ -115,6 +115,8 @@ TESTLAB_KEY=$(openssl rand -hex 16) docker compose up --build
 
 This starts the Test Lab API and the web app on the same ports as above.
 
+To host it as a single service, the root `Dockerfile` runs both in one container and serves the web app on `$PORT`. `render.yaml` deploys that image to Render's free plan.
+
 ## Layout
 
 | Folder | Contents |
