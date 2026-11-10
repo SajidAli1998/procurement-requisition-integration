@@ -3,14 +3,11 @@ using Procurement.SyntheticData;
 
 namespace Mocks.SapApi;
 
-/// <summary>Which data set the SAP mock mirrors: the client's workbook (default) or none (empty SAP, generated tests).</summary>
 public enum Dataset { Workbook, Generated }
 
-/// <summary>
-/// The client's "mock remote" behaviour from the workbook: document numbers from Mock_Remote_Status, documents that
-/// already exist (DUPLICATE), and the scheduled 429 / 503 / 409 responses from Failure_Injection.
-/// With the Generated dataset none of this applies and SAP starts empty, behaving like real SAP (duplicates allowed).
-/// </summary>
+// The workbook's "mock remote": document numbers from Mock_Remote_Status, documents that already exist (DUPLICATE),
+// and the scheduled 429, 503 and 409 answers from Failure_Injection. With the Generated data set none of this
+// applies and SAP behaves like real SAP, duplicates allowed.
 public sealed class WorkbookRemote
 {
     private readonly Lock _gate = new();
@@ -28,7 +25,6 @@ public sealed class WorkbookRemote
 
     public Dataset Dataset { get; private set; }
 
-    /// <summary>The workbook's remote answers a create for an existing reference with 409 and the existing document id.</summary>
     public bool RejectsDuplicateReferences => Dataset == Dataset.Workbook;
 
     public void Reset(Dataset dataset, SapStore store)
@@ -50,7 +46,6 @@ public sealed class WorkbookRemote
             _failures = pack.Failures.ToDictionary(f => f.RequisitionId, StringComparer.Ordinal);
             _documentIds = pack.RemoteStatus.ToDictionary(r => r.RequisitionId, r => r.RemoteDocumentId, StringComparer.Ordinal);
 
-            // DUPLICATE: the document is already in SAP before the integration ever runs.
             var requisitions = pack.Requisitions.ToDictionary(r => r.Id);
             foreach (var f in pack.Failures.Where(f => f.Mode == "DUPLICATE"))
             {
@@ -82,10 +77,7 @@ public sealed class WorkbookRemote
         }
     }
 
-    /// <summary>
-    /// Counts a create for this reference and returns the scheduled failure for this attempt, if any.
-    /// RATE_LIMIT and TRANSIENT_5XX fail the first Trigger_Attempts creates, before anything is processed.
-    /// </summary>
+    // RATE_LIMIT and TRANSIENT_5XX fail the first Trigger_Attempts creates for a reference.
     public PackFailure? ScheduledFailure(string reference)
     {
         lock (_gate)
@@ -97,7 +89,6 @@ public sealed class WorkbookRemote
         }
     }
 
-    /// <summary>VERSION_CONFLICT: the remote knows a newer version of the requisition than the one being sent.</summary>
     public long? NewerVersionThan(string reference, long sentVersion)
     {
         lock (_gate)
@@ -109,7 +100,7 @@ public sealed class WorkbookRemote
         }
     }
 
-    /// <summary>The workbook's document id for this reference, or a new MOCK-SAP-6xxxx id for requisitions it does not list.</summary>
+    // Requisitions the workbook does not list get a new MOCK-SAP-6xxxx id.
     public string? DocumentIdFor(string reference)
     {
         lock (_gate)

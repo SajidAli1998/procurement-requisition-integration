@@ -2,7 +2,7 @@ using Procurement.AssistantApi.Model;
 
 namespace Procurement.AssistantApi.Infrastructure;
 
-/// <summary>Stable error codes. An agent should branch on these, never on the human-readable title.</summary>
+// Agents branch on these codes, never on the title, so they must not change.
 public static class ErrorCodes
 {
     public const string IdempotencyKeyRequired = "IDEMPOTENCY_KEY_REQUIRED";
@@ -21,9 +21,11 @@ public static class ErrorCodes
     public const string NotYourRequisition = "NOT_YOUR_REQUISITION";
     public const string ConfirmationRequired = "CONFIRMATION_REQUIRED";
     public const string ConfirmationMismatch = "CONFIRMATION_MISMATCH";
+    public const string ConfirmationExpired = "CONFIRMATION_EXPIRED";
+    public const string PayloadTooLarge = "PAYLOAD_TOO_LARGE";
+    public const string ConfirmationAlreadyUsed = "CONFIRMATION_ALREADY_USED";
 }
 
-/// <summary>RFC 9457 problem details with extensions an agent can act on.</summary>
 public static class Problems
 {
     public static IResult Create(int status, string code, string title, string? detail = null, bool retryable = false,

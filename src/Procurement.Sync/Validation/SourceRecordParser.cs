@@ -8,13 +8,9 @@ namespace Procurement.Sync.Validation;
 
 public sealed record ValidationProblem(QuarantineReason Reason, string Field, string Message);
 
-/// <summary>Identity fields read leniently from any record, valid or not.</summary>
 public sealed record SourceEnvelope(string Key, bool HasId, long Version, string? Status, string Raw);
 
-/// <summary>
-/// Reads a raw source record into the canonical model, collecting every schema problem with its field path
-/// instead of failing on the first. Tolerant reader: unknown extra fields are ignored.
-/// </summary>
+// Collects every schema problem with its field path instead of stopping at the first. Unknown fields are ignored.
 public static class SourceRecordParser
 {
     public static SourceEnvelope ReadEnvelope(JsonElement record)
@@ -42,6 +38,10 @@ public static class SourceRecordParser
             problems.Add(new(QuarantineReason.SchemaInvalid, "$", "Record is not a JSON object"));
             return (null, problems);
         }
+
+        // With two values for one field, which one counts depends on the parser, so neither is trusted.
+        foreach (var path in DuplicateProperties(record, "")) problems.Add(new(QuarantineReason.SchemaInvalid, path, $"{path} appears more than once"));
+        if (problems.Count > 0) return (null, problems);
 
         var reader = new FieldReader(problems);
         if (!envelope.HasId) problems.Add(new(QuarantineReason.MissingRequiredField, "id", "id is missing"));
@@ -95,6 +95,26 @@ public static class SourceRecordParser
 
         return (new Requisition(envelope.Key, envelope.Version, requester!, costCenter!, companyCode!, currency!,
             neededBy!.Value, justification, approvedAt, total!.Value, lines), problems);
+    }
+
+    private static IEnumerable<string> DuplicateProperties(JsonElement element, string path)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var p in element.EnumerateObject())
+            {
+                var child = path.Length == 0 ? p.Name : $"{path}.{p.Name}";
+                if (!seen.Add(p.Name)) yield return child;
+                foreach (var d in DuplicateProperties(p.Value, child)) yield return d;
+            }
+        }
+        else if (element.ValueKind == JsonValueKind.Array)
+        {
+            var i = 0;
+            foreach (var item in element.EnumerateArray())
+                foreach (var d in DuplicateProperties(item, $"{path}[{i++}]")) yield return d;
+        }
     }
 
     private sealed class FieldReader(List<ValidationProblem> problems, string prefix = "")

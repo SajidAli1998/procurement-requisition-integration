@@ -7,20 +7,13 @@ using Procurement.SyntheticData;
 
 namespace Procurement.AssistantApi.Infrastructure;
 
-/// <summary>
-/// Issues signed development tokens so the API can be exercised locally and in tests.
-/// In production tokens come from the organisation's identity provider, issued to the assistant
-/// on behalf of the signed-in user (OAuth on-behalf-of), and this class is not used.
-/// </summary>
+// Local and test use only. In production the identity provider issues tokens to the assistant
+// on behalf of the signed-in user.
 public static class DevTokens
 {
     public static SymmetricSecurityKey Key(AuthOptions auth) => new(Encoding.UTF8.GetBytes(auth.SigningKey));
 
-    /// <summary>
-    /// What an employee may do through the assistant, from the (synthetic) directory: everyone may read their own
-    /// requisitions, those allowed to raise them get the draft scope, and procurement delegates may read all.
-    /// Someone not in the directory (a developer trying the API) gets read and draft.
-    /// </summary>
+    // Someone not in the directory, such as a developer trying the API, gets read and draft.
     public static string[] ScopesFor(Employee? employee) => employee is null
         ? [Scopes.Read, Scopes.Draft]
         : [Scopes.Read, .. employee.CanRaise ? [Scopes.Draft] : Array.Empty<string>(), .. employee.ProcurementDelegate ? [Scopes.ReadAll] : Array.Empty<string>()];

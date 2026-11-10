@@ -5,6 +5,8 @@
     <Project Path="src/Mocks.SourceApi/Mocks.SourceApi.csproj" />
     <Project Path="src/Procurement.AssistantApi/Procurement.AssistantApi.csproj" />
     <Project Path="src/Procurement.Contracts/Procurement.Contracts.csproj" />
+    <Project Path="src/Procurement.Scenarios/Procurement.Scenarios.csproj" />
+    <Project Path="src/Procurement.TestLab/Procurement.TestLab.csproj" />
     <Project Path="src/Procurement.Sync.Worker/Procurement.Sync.Worker.csproj" />
     <Project Path="src/Procurement.Sync/Procurement.Sync.csproj" />
     <Project Path="src/Procurement.SyntheticData/Procurement.SyntheticData.csproj" />
@@ -12,5 +14,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/Procurement.ScenarioTests/Procurement.ScenarioTests.csproj" />
     <Project Path="tests/Procurement.Sync.UnitTests/Procurement.Sync.UnitTests.csproj" />
+    <Project Path="tests/Procurement.TestLab.Tests/Procurement.TestLab.Tests.csproj" />
   </Folder>
 </Solution>

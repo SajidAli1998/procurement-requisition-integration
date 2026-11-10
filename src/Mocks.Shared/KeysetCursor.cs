@@ -3,7 +3,6 @@ using System.Text;
 
 namespace Mocks.Shared;
 
-/// <summary>Opaque pagination cursor encoding the last (timestamp, key) a client has seen.</summary>
 public readonly record struct KeysetCursor(DateTime Timestamp, string Key)
 {
     public string Encode() =>

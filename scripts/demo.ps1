@@ -22,9 +22,9 @@ $env:Logging__LogLevel__Procurement = 'Warning'
 function procsync { dotnet src/Procurement.Sync.Worker/bin/Debug/net10.0/procsync.dll @args }
 function Step([string]$title) {
     Write-Host ''
-    Write-Host ('═' * 68)
+    Write-Host ('-' * 68)
     Write-Host "  $title"
-    Write-Host ('═' * 68)
+    Write-Host ('-' * 68)
     if (-not $NoPause) { Read-Host '  (press Enter)' | Out-Null }
 }
 function Post([string]$url, $body = $null, [hashtable]$headers = @{}) {

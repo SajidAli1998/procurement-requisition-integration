@@ -3,11 +3,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace Procurement.SyntheticData;
 
-/// <summary>
-/// Minimal reader for the client's synthetic data workbook. Each data sheet has a title row, a note row,
-/// then a header row; this returns the rows below the header keyed by column name.
-/// Values are string, double, bool or null (empty cell), exactly as Excel stores them.
-/// </summary>
+// Returns the rows below each sheet's header keyed by column name. Values are string, double, bool or null, as Excel stores them.
 public static class WorkbookReader
 {
     public static Dictionary<string, List<Dictionary<string, object?>>> ReadAll(string path)
@@ -60,7 +56,7 @@ public static class WorkbookReader
         return double.TryParse(raw, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : raw;
     }
 
-    /// <summary>"C12" → 2.</summary>
+    // "C12" is column 2.
     private static int? ColumnIndex(string? reference)
     {
         if (string.IsNullOrEmpty(reference)) return null;

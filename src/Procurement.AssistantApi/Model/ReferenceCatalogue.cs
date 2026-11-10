@@ -8,13 +8,10 @@ public sealed record CostCenterInfo(string Code, string Name, string CompanyCode
 
 public sealed record PlantInfo(string Code, string Name, string CompanyCode);
 
-/// <summary>
-/// Synthetic catalogue the assistant must choose from. Prices come from here, never from the caller,
-/// so a model cannot invent a price or a code. Built from the client's workbook, or the generated data set.
-/// </summary>
+// Prices come from here, never from the caller, so a model cannot invent a price or a code.
 public sealed class ReferenceCatalogue
 {
-    /// <summary>Units counted in whole items; fractional quantities are only allowed for the others.</summary>
+    // Whole quantities only.
     public static readonly IReadOnlySet<string> CountedUnits = new HashSet<string> { "EA", "BOX" };
 
     public required IReadOnlyList<MaterialInfo> Materials { get; init; }
@@ -25,10 +22,7 @@ public sealed class ReferenceCatalogue
     public CostCenterInfo? CostCenter(string code) => CostCenters.FirstOrDefault(c => c.Code == code);
     public PlantInfo? Plant(string code) => Plants.FirstOrDefault(p => p.Code == code);
 
-    /// <summary>
-    /// The workbook's items (code, description, unit, QAR price) and cost centres (one per department).
-    /// It has no plants, so the single assumed plant of the Qatar entity is offered.
-    /// </summary>
+    // The workbook has no plants, so the one assumed plant of the Qatar entity is offered.
     public static ReferenceCatalogue FromWorkbook(DataPack pack)
     {
         var lines = pack.Requisitions.SelectMany(r => r.Lines.Select(l => (Requisition: r, Line: l))).ToList();

@@ -3,10 +3,7 @@ using Procurement.AssistantApi.Model;
 
 namespace Procurement.AssistantApi.Services;
 
-/// <summary>
-/// Validates an assistant's request against the catalogue and policy limits. Every issue carries a field path,
-/// a stable code and a concrete suggestion, so an agent can correct itself without guessing.
-/// </summary>
+// Every issue carries a field path, a stable code and a suggestion, so an agent can correct itself without guessing.
 public sealed class RequestValidator(IOptions<AssistantOptions> options, ReferenceCatalogue catalogue, TimeProvider time)
 {
     public ValidationResult Validate(CreateRequisitionRequest request)

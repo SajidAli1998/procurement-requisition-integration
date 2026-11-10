@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
 
         services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton<RunMetrics>();
+        services.AddSingleton<SyncControl>();
         services.AddSyncStore(configuration);
         services.AddSingleton<LeaseManager>();
         services.AddSingleton<RequisitionValidator>();
@@ -32,7 +33,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<SapAttemptRecorder>();
         services.AddHttpClient<SapClient>((sp, http) => Configure(sp, http, o => o.SapBaseUrl))
             .AddSyncResilience("sap")
-            // Added after the resilience handler, so it runs inside it and sees each individual attempt.
+            // Added after the resilience handler so it runs inside it and sees each attempt.
             .AddHttpMessageHandler<SapAttemptRecorder>();
 
         services.AddTransient<ExtractStage>();

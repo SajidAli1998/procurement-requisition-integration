@@ -1,6 +1,5 @@
 namespace Procurement.SyntheticData;
 
-/// <summary>Finds data files: an explicit path wins; otherwise the copy next to the binaries, then data/ in a parent folder.</summary>
 public static class DataFiles
 {
     public static string Resolve(string? configured, string fileName)

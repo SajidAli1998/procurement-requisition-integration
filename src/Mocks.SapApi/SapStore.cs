@@ -2,14 +2,14 @@ using Mocks.Shared;
 
 namespace Mocks.SapApi;
 
-/// <summary>In-memory SAP purchase requisition table. Duplicates by ExternalReference are allowed, as in SAP.</summary>
+// Duplicate ExternalReferences are allowed, as in SAP.
 public sealed class SapStore(MonotonicClock clock)
 {
-    // Plant → company code assignment; SAP rejects plants used outside their company code.
+    // Plant to company code. SAP rejects a plant used outside its company code.
     public static readonly IReadOnlyDictionary<string, string> PlantCompany = new Dictionary<string, string>
     {
         ["1100"] = "1000", ["1200"] = "1000", ["2100"] = "2000", ["2200"] = "2000",
-        // The client's workbook: one synthetic Qatar entity (our assumption, the workbook has no org codes).
+        // The workbook has no org codes, so we assume one Qatar entity for it.
         ["3100"] = "3000",
     };
 
@@ -43,8 +43,7 @@ public sealed class SapStore(MonotonicClock clock)
         return errors;
     }
 
-    /// <param name="number">Document number to use; by default the next 10-digit SAP number.</param>
-    public SapRequisition Create(PurchaseRequisitionInput input, string? number = null)
+    public SapRequisition Create(PurchaseRequisitionInput input, string? number = null, string createdBy = "INTEGRATION")
     {
         lock (_gate)
         {
@@ -55,6 +54,7 @@ public sealed class SapStore(MonotonicClock clock)
                 PurReqnDescription = input.PurReqnDescription,
                 ExternalReference = input.ExternalReference!,
                 ExternalVersion = input.ExternalVersion ?? 0,
+                CreatedByUser = createdBy,
                 CreationDateTime = now,
                 LastChangeDateTime = now,
                 Items = MapItems(input.Items!),
@@ -64,7 +64,7 @@ public sealed class SapStore(MonotonicClock clock)
         }
     }
 
-    /// <summary>Loads a requisition that existed before the integration started (workbook DUPLICATE rows).</summary>
+    // For documents that existed before the integration started (the workbook's DUPLICATE rows).
     public void Seed(SapRequisition pr, SapLifecycle lifecycle)
     {
         lock (_gate)
@@ -118,7 +118,6 @@ public sealed class SapStore(MonotonicClock clock)
                 case PreconditionResult.Missing: return (PatchOutcome.PreconditionMissing, null, pr.Version);
                 case PreconditionResult.Failed: return (PatchOutcome.PreconditionFailed, null, pr.Version);
             }
-            // Once released, the requisition is frozen for content changes.
             if (pr.Lifecycle is not (SapLifecycle.Created or SapLifecycle.InRelease))
                 return (PatchOutcome.Locked, Clone(pr), pr.Version);
 
@@ -130,7 +129,6 @@ public sealed class SapStore(MonotonicClock clock)
         }
     }
 
-    /// <summary>Moves every open requisition one lifecycle step. Every Nth one is rejected in release.</summary>
     public int AdvanceAll(int rejectEvery)
     {
         lock (_gate)
@@ -166,7 +164,7 @@ public sealed class SapStore(MonotonicClock clock)
         }
     }
 
-    /// <summary>Simulates a buyer editing the requisition in SAP, which changes its ETag.</summary>
+    // A buyer editing the requisition in SAP, which changes its ETag.
     public SapRequisition? Touch(string number)
     {
         lock (_gate)
@@ -176,6 +174,29 @@ public sealed class SapStore(MonotonicClock clock)
             Touch(pr);
             return Clone(pr);
         }
+    }
+
+    public bool Delete(string number)
+    {
+        lock (_gate) return _rows.Remove(number);
+    }
+
+    // Accepts combinations SAP would never produce.
+    public SapRequisition? SetRawStatus(string number, string? processingStatus, string? releaseStatus)
+    {
+        lock (_gate)
+        {
+            if (!_rows.TryGetValue(number, out var pr)) return null;
+            if (processingStatus is not null) pr.ProcessingStatus = processingStatus;
+            if (releaseStatus is not null) pr.ReleaseStatus = releaseStatus;
+            Touch(pr);
+            return Clone(pr);
+        }
+    }
+
+    public IReadOnlyList<SapRequisition> All()
+    {
+        lock (_gate) return _rows.Values.OrderBy(r => r.PurchaseRequisition, StringComparer.Ordinal).Select(Clone).ToList();
     }
 
     public object Stats()

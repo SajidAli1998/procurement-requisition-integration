@@ -32,18 +32,12 @@ public sealed record PackApiTest(
 
 public sealed record PackSupplier(string Id, string Name, string Category, string Country, bool Active, string PaymentTerms);
 
-/// <summary>
-/// The client's synthetic data pack ("Challenge 2: Procurement Integration"), read straight from the Excel workbook.
-/// The source and SAP mocks serve it, and the scenario tests compare our results with its expected-outcome sheets.
-/// </summary>
 public sealed class DataPack
 {
     public const string FileName = "Sajid_Procurement_Integration_Synthetic_Data_Expanded.xlsx";
 
-    /// <summary>
-    /// The workbook has no company code or plant. Every requisition belongs to one synthetic Qatar entity;
-    /// these codes are our assumption and are only used to satisfy SAP's organisational fields.
-    /// </summary>
+    // The workbook has no company code or plant. These are our assumption (one synthetic Qatar entity),
+    // used only to fill SAP's organisational fields.
     public const string CompanyCode = "3000";
     public const string Plant = "3100";
 
@@ -58,7 +52,6 @@ public sealed class DataPack
     private static readonly Lock CacheGate = new();
     private static readonly Dictionary<string, DataPack> Cache = new(StringComparer.Ordinal);
 
-    /// <summary>Loads (and caches) the workbook at <paramref name="path"/>, or the bundled copy when null.</summary>
     public static DataPack Load(string? path = null)
     {
         var resolved = DataFiles.Resolve(path, FileName);
@@ -145,7 +138,7 @@ public sealed class DataPack
         _ => false,
     };
 
-    /// <summary>Excel stores dates as serial numbers; a blank cell (or the text "blank") means no date.</summary>
+    // Excel stores dates as serial numbers.
     private static DateOnly? Date(Dictionary<string, object?> row, string column) => Value(row, column) switch
     {
         double d => DateOnly.FromDateTime(DateTime.FromOADate(d)),

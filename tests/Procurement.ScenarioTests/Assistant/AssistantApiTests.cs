@@ -6,7 +6,7 @@ using Procurement.ScenarioTests.Infrastructure;
 
 namespace Procurement.ScenarioTests.Assistant;
 
-/// <summary>The AI-facing contract: safety rules are enforced by the server, whatever the caller sends.</summary>
+/// <summary>The server enforces the safety rules, whatever the caller sends.</summary>
 public sealed class AssistantApiTests
 {
     // Not one of the seeded requesters, so "my requests" only contains what these tests create.
@@ -24,7 +24,7 @@ public sealed class AssistantApiTests
         assistantSessionRef = "conv-42",
     };
 
-    /// <summary>Validates first and, like a well-behaved assistant whose user said yes, sends the confirmation token it got back.</summary>
+    /// <summary>Validates first, then sends back the confirmation token, as an assistant whose user said yes would.</summary>
     internal static async Task<HttpResponseMessage> CreateAsync(HttpClient client, object body, string? key = "key-1", bool confirm = true)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "/v1/requisition-requests") { Content = JsonContent.Create(body) };

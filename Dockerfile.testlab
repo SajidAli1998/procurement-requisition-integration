@@ -1,0 +1,13 @@
+# The Test Lab API (scenario runner + workspace) in a container. The lab is in-memory; nothing leaves the container.
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY . .
+RUN dotnet publish src/Procurement.TestLab -c Release -o /app
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
+WORKDIR /app
+COPY --from=build /app .
+# Results are written under /data (mount a volume to keep them).
+ENV TESTLAB_RESULTS_DIR=/data/scenarios Urls=http://0.0.0.0:5110
+EXPOSE 5110
+ENTRYPOINT ["dotnet", "testlab.dll", "serve"]

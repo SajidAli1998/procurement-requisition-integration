@@ -2,7 +2,7 @@
 """Generates data/employee-directory.json from the client's workbook (needs: pip install openpyxl).
 
 The workbook's AI_API_Contract_Tests refer to employees but never say who owns which requisition or who may
-raise one. This script records our assumption (see data/README.md):
+raise one. This script records our assumptions:
   - employee E10NN raised REQ-70NN and belongs to its department;
   - status reads that expect 403 were raised by a colleague in the same department (E10NN+8);
   - creates that expect 403 come from employees who may read but not raise;

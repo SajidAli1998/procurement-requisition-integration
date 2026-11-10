@@ -14,17 +14,17 @@ public sealed class SyncDbContext(DbContextOptions<SyncDbContext> options) : DbC
     public DbSet<StatusHistoryEntry> StatusHistory => Set<StatusHistoryEntry>();
     public DbSet<Lease> Leases => Set<Lease>();
 
-    protected override void ConfigureConventions(ModelConfigurationBuilder builder)
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
-        // Store every DateTime as UTC and read it back as UTC (SQLite drops DateTimeKind).
-        builder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
-        builder.Properties<DateTime?>().HaveConversion<NullableUtcDateTimeConverter>();
-        builder.Properties<Enum>().HaveConversion<string>().HaveMaxLength(40);
+        // SQLite drops DateTimeKind, so every DateTime is stored and read back as UTC.
+        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+        configurationBuilder.Properties<DateTime?>().HaveConversion<NullableUtcDateTimeConverter>();
+        configurationBuilder.Properties<Enum>().HaveConversion<string>().HaveMaxLength(40);
     }
 
-    protected override void OnModelCreating(ModelBuilder b)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        b.Entity<RequisitionRecord>(e =>
+        modelBuilder.Entity<RequisitionRecord>(e =>
         {
             e.ToTable("Requisitions");
             e.HasKey(x => x.SourceId);
@@ -36,7 +36,7 @@ public sealed class SyncDbContext(DbContextOptions<SyncDbContext> options) : DbC
             e.HasIndex(x => x.SapNumber);
         });
 
-        b.Entity<OutboxMessage>(e =>
+        modelBuilder.Entity<OutboxMessage>(e =>
         {
             e.ToTable("Outbox");
             e.Property(x => x.SourceId).HasMaxLength(64);
@@ -45,27 +45,27 @@ public sealed class SyncDbContext(DbContextOptions<SyncDbContext> options) : DbC
             e.HasIndex(x => x.ProcessedAt);
         });
 
-        b.Entity<QuarantineEntry>(e =>
+        modelBuilder.Entity<QuarantineEntry>(e =>
         {
             e.ToTable("Quarantine");
             e.Property(x => x.SourceKey).HasMaxLength(64);
             e.HasIndex(x => new { x.SourceKey, x.ResolvedAt });
         });
 
-        b.Entity<Checkpoint>(e =>
+        modelBuilder.Entity<Checkpoint>(e =>
         {
             e.ToTable("Checkpoints");
             e.HasKey(x => x.Stream);
             e.Property(x => x.Stream).HasMaxLength(64);
         });
 
-        b.Entity<SyncRun>(e =>
+        modelBuilder.Entity<SyncRun>(e =>
         {
             e.ToTable("Runs");
             e.Property(x => x.Id).HasMaxLength(40);
         });
 
-        b.Entity<RunEvent>(e =>
+        modelBuilder.Entity<RunEvent>(e =>
         {
             e.ToTable("RunEvents");
             e.Property(x => x.RunId).HasMaxLength(40);
@@ -74,14 +74,14 @@ public sealed class SyncDbContext(DbContextOptions<SyncDbContext> options) : DbC
             e.HasIndex(x => new { x.RunId, x.Kind });
         });
 
-        b.Entity<StatusHistoryEntry>(e =>
+        modelBuilder.Entity<StatusHistoryEntry>(e =>
         {
             e.ToTable("StatusHistory");
             e.Property(x => x.SourceId).HasMaxLength(64);
             e.HasIndex(x => x.SourceId);
         });
 
-        b.Entity<Lease>(e =>
+        modelBuilder.Entity<Lease>(e =>
         {
             e.ToTable("Leases");
             e.HasKey(x => x.Name);

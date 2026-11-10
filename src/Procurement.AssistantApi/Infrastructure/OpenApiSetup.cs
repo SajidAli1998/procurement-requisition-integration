@@ -1,5 +1,4 @@
 using System.Text.Json.Nodes;
-using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 using Procurement.AssistantApi.Model;
 

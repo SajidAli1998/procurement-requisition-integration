@@ -11,7 +11,7 @@ using Mocks.SourceApi;
 
 namespace Procurement.ScenarioTests.Infrastructure;
 
-/// <param name="dataset">Workbook (the client's data) or Generated (our 250-record stress set, which most scenarios use).</param>
+// dataset is "Workbook" (the client's data) or "Generated" (the 250-record stress set most scenarios use).
 public sealed class SourceApiFactory(string dataset = "Generated") : WebApplicationFactory<SourceApiMarker>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)

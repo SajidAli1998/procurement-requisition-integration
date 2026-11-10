@@ -4,11 +4,7 @@ namespace Procurement.SyntheticData;
 
 public sealed record Employee(string Id, string Name, string Department, string CostCentre, bool CanRaise, bool ProcurementDelegate);
 
-/// <summary>
-/// Who raised which workbook requisition, and what each employee may do through the assistant.
-/// The client's workbook does not contain this, so data/employee-directory.json records our assumption
-/// (see its "_about" note and scripts/generate_employee_directory.py).
-/// </summary>
+// The client's workbook has no requesters or permissions, so employee-directory.json holds our assumption.
 public sealed class EmployeeDirectory
 {
     public const string FileName = "employee-directory.json";

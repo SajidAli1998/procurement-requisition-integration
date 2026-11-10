@@ -9,10 +9,6 @@ using Procurement.Sync.Store;
 
 namespace Procurement.Sync.Reporting;
 
-/// <summary>
-/// Builds the reconciliation report from local state and, when enabled, a full scan of SAP.
-/// The invariants are the evidence for "nothing was lost and nothing was duplicated".
-/// </summary>
 public sealed class ReportBuilder(
     IDbContextFactory<SyncDbContext> dbFactory,
     SapClient sap,
@@ -127,10 +123,14 @@ public sealed class ReportBuilder(
 
         var sapNumbers = sapRows.Select(p => p.PurchaseRequisition).ToHashSet();
         var synced = records.Where(r => r.SapNumber is not null).ToList();
-        var missing = synced.Where(r => !sapNumbers.Contains(r.SapNumber!)).Select(r => $"{r.SourceId}→{r.SapNumber}").ToList();
+        var byNumber = sapRows.GroupBy(p => p.PurchaseRequisition).ToDictionary(g => g.Key, g => g.First());
+        var missing = synced.Where(r => !sapNumbers.Contains(r.SapNumber!)).Select(r => $"{r.SourceId}→{r.SapNumber}")
+            .Concat(synced.Where(r => byNumber.TryGetValue(r.SapNumber!, out var p) && p.ExternalReference != r.SourceId)
+                .Select(r => $"{r.SourceId}→{r.SapNumber} (belongs to {byNumber[r.SapNumber!].ExternalReference})"))
+            .ToList();
         results.Add(missing.Count == 0
             ? new(names[1], InvariantOutcome.Pass, $"All {synced.Count} linked SAP numbers found.")
-            : new(names[1], InvariantOutcome.Fail, $"Missing in SAP: {string.Join(", ", missing.Take(20))}"));
+            : new(names[1], InvariantOutcome.Fail, $"Missing in SAP or linked to another reference: {string.Join(", ", missing.Take(20))}"));
 
         var linked = synced.Select(r => r.SapNumber!).ToHashSet();
         var orphans = sapRows.Where(p => !linked.Contains(p.PurchaseRequisition)).Select(p => $"{p.PurchaseRequisition} ({p.ExternalReference})").ToList();
@@ -138,7 +138,7 @@ public sealed class ReportBuilder(
             ? new(names[2], InvariantOutcome.Pass, "No unlinked SAP requisitions.")
             : new(names[2], InvariantOutcome.Warn, $"Not linked locally (adopted on the next run if the source still has them): {string.Join(", ", orphans.Take(20))}"));
 
-        // Compare like with like: only requisitions whose current content is the version SAP holds.
+        // Only requisitions whose current content is the version SAP holds are compared.
         var compared = new List<(string SapNumber, string Currency, decimal Amount)>();
         foreach (var r in synced)
         {

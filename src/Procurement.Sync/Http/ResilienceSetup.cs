@@ -8,10 +8,6 @@ namespace Procurement.Sync.Http;
 
 public static class ResilienceSetup
 {
-    /// <summary>
-    /// Standard resilience handler (rate limiter → total timeout → retry → circuit breaker → attempt timeout),
-    /// tuned so retries respect <see cref="RetryClassifier"/> and server Retry-After hints.
-    /// </summary>
     public static IHttpClientBuilder AddSyncResilience(this IHttpClientBuilder builder, string clientName)
     {
         builder.AddStandardResilienceHandler().Configure((options, services) =>
@@ -42,7 +38,7 @@ public static class ResilienceSetup
             options.Retry.UseJitter = true;
             options.Retry.Delay = settings.BaseDelay * scale;
             options.Retry.MaxDelay = settings.MaxRetryAfter * scale > options.Retry.Delay ? settings.MaxRetryAfter * scale : options.Retry.Delay;
-            options.Retry.ShouldRetryAfterHeader = false; // handled below so it can be capped and scaled
+            options.Retry.ShouldRetryAfterHeader = false; // the DelayGenerator below caps and scales it
             options.Retry.DelayGenerator = args =>
             {
                 var retryAfter = args.Outcome.Result?.Headers.RetryAfter;
@@ -54,13 +50,16 @@ public static class ResilienceSetup
                 return ValueTask.FromResult<TimeSpan?>(capped * scale);
             };
             options.Retry.ShouldHandle = args =>
-                ValueTask.FromResult(RetryClassifier.ShouldRetry(args.Outcome, args.Context.GetRequestMessage()));
+                ValueTask.FromResult(RetryClassifier.ShouldRetry(args.Outcome, args.Context.GetRequestMessage(), settings.TrustServiceUnavailable));
             options.Retry.OnRetry = args =>
             {
                 metrics.RecordRetry(clientName, (int?)args.Outcome.Result?.StatusCode, args.RetryDelay);
                 return ValueTask.CompletedTask;
             };
 
+            // A 429 is SAP pacing us, not failing. Counting it would let a burst of throttling open the breaker and stop the run.
+            options.CircuitBreaker.ShouldHandle = args => ValueTask.FromResult(
+                HttpClientResiliencePredicates.IsTransient(args.Outcome) && args.Outcome.Result?.StatusCode != System.Net.HttpStatusCode.TooManyRequests);
             options.CircuitBreaker.FailureRatio = settings.BreakerFailureRatio;
             options.CircuitBreaker.MinimumThroughput = settings.BreakerMinimumThroughput;
             options.CircuitBreaker.SamplingDuration = settings.BreakerSamplingDuration;

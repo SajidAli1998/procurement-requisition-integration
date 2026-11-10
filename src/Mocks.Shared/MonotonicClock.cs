@@ -1,9 +1,6 @@
 namespace Mocks.Shared;
 
-/// <summary>
-/// Hands out strictly increasing UTC timestamps so keyset ordering on (timestamp, id)
-/// is stable even when several records change within the same clock tick.
-/// </summary>
+// Strictly increasing, so keyset ordering stays stable when several records change in the same tick.
 public sealed class MonotonicClock(TimeProvider time)
 {
     private readonly Lock _gate = new();
@@ -21,6 +18,4 @@ public sealed class MonotonicClock(TimeProvider time)
             }
         }
     }
-
-    public DateOnly Today => DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
 }

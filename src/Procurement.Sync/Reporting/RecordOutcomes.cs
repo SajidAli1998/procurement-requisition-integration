@@ -3,13 +3,8 @@ using Procurement.Sync.Store;
 
 namespace Procurement.Sync.Reporting;
 
-/// <summary>
-/// One line per requisition the run touched: what happened, how many SAP attempts it took and why.
-/// The columns follow the client's Reconciliation_Expected sheet, so the two can be compared row by row.
-/// </summary>
-/// <param name="Result">Created, Duplicate (already in SAP, linked not re-created), Updated, Quarantined, Skipped, Pending, Unchanged or StatusUpdated.</param>
-/// <param name="Attempts">SAP write attempts including retries; 1 for a record settled without a write (validated out, or found in SAP); 0 when not processed.</param>
-/// <param name="FailureCategory">The main thing that got in the way: Validation, Idempotency, Version conflict, Rate limit, Transient service, Lost response, Not approved, or None.</param>
+// Columns follow the client's Reconciliation_Expected sheet so the two can be compared row by row.
+// Attempts counts SAP writes including retries; a record settled without a write (validated out, or found in SAP) counts 1.
 public sealed record RecordOutcome(
     string Key, long? SourceVersion, string Result, string? SapNumber, int Attempts, string FailureCategory, string Explanation,
     string SapResponses);
@@ -97,7 +92,7 @@ public static class RecordOutcomes
 
     private static string Count(int n) => n switch { 1 => "one", 2 => "two", 3 => "three", 4 => "four", _ => n.ToString(CultureInfo.InvariantCulture) };
 
-    /// <summary>The version the run read from the source ("v2 Approved" → 2).</summary>
+    // Parses the Extracted detail, for example "v2 Approved".
     private static long? FirstExtractedVersion(List<RunEvent> events) =>
         events.FirstOrDefault(e => e.Kind == RunEventKind.Extracted)?.Detail is { } d && d.StartsWith('v')
         && long.TryParse(d[1..].Split(' ')[0], CultureInfo.InvariantCulture, out var v) ? v : null;

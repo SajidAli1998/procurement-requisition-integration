@@ -6,7 +6,7 @@ using Procurement.Sync.Validation;
 
 namespace Procurement.Sync.Pipeline;
 
-/// <summary>Writes run events and quarantine entries in the caller's unit of work, so they commit with the state change.</summary>
+// Writes into the caller's unit of work so events commit together with the state change.
 internal static class Ledger
 {
     public static void Event(SyncDbContext db, RunContext run, string key, RunEventKind kind, string? detail, DateTime now,

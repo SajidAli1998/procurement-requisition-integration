@@ -7,17 +7,16 @@ using Procurement.SyntheticData;
 
 namespace Procurement.ScenarioTests.Workbook;
 
-/// <summary>
-/// The client's synthetic data pack, end to end: the mocks serve the workbook, the real integration runs against
-/// them, and the results are compared row by row with the workbook's expected-outcome sheets.
-/// </summary>
+/// <summary>The mocks serve the client's workbook and results are compared row by row with its expected-outcome sheets.</summary>
 public sealed class WorkbookPipelineTests
 {
     private static readonly DataPack Pack = DataPack.Load();
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
-    private static SyncHarness Harness() => new(new() { ["Sync:PageSize"] = "40" }, dataset: "Workbook");
+    // The workbook schedules 14 × 503 at the start of the run; with the harness's low breaker threshold (5) a busy machine
+    // can see them cluster and open the breaker, which these tests are not about (S08 covers it).
+    private static SyncHarness Harness() => new(new() { ["Sync:PageSize"] = "40", ["Sync:Resilience:BreakerMinimumThroughput"] = "100" }, dataset: "Workbook");
 
     [Fact(DisplayName = "W01 Every row of Reconciliation_Expected matches the first run's report")]
     public async Task Matches_reconciliation_expected()

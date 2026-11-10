@@ -7,7 +7,7 @@ using Procurement.Sync.Store;
 
 namespace Procurement.ScenarioTests.Pipeline;
 
-/// <summary>End-to-end scenarios: real sync services against both mocks, numbered as in docs/test-scenarios.md.</summary>
+/// <summary>Real sync services against both mocks, end to end.</summary>
 public sealed class PipelineScenarioTests
 {
     private const int Approved = 207;

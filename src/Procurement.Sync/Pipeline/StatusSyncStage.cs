@@ -7,10 +7,6 @@ using Procurement.Sync.Store;
 
 namespace Procurement.Sync.Pipeline;
 
-/// <summary>
-/// Polls SAP's change feed since the last watermark and applies procurement statuses to local records.
-/// SAP owns status, so this only ever moves a status forward; it never touches requisition content.
-/// </summary>
 public sealed class StatusSyncStage(
     IDbContextFactory<SyncDbContext> dbFactory,
     SapClient sap,
@@ -20,7 +16,7 @@ public sealed class StatusSyncStage(
 {
     public const string Stream = "sap-status";
 
-    /// <returns>An issue description if polling stopped early, otherwise null.</returns>
+    // Returns an issue description when polling stopped early.
     public async Task<string?> RunAsync(RunContext run, CancellationToken ct)
     {
         DateTime? watermark;
@@ -37,18 +33,35 @@ public sealed class StatusSyncStage(
             var page = await sap.GetChangesAsync(since, nextLink, 100, ct);
             if (!page.IsSuccess)
             {
-                logger.LogWarning("Status polling stopped: {Status} {Error}", page.Status, page.Error);
+                logger.StatusPollingStopped(page.Status, page.Error);
                 return $"SAP status polling stopped early ({page.Status}); it resumes from the last watermark next run";
             }
 
             var (items, link) = page.Value;
             await using var db = await dbFactory.CreateDbContextAsync(ct);
             var numbers = items.Select(i => i.PurchaseRequisition).ToList();
-            var records = await db.Requisitions.Where(r => r.SapNumber != null && numbers.Contains(r.SapNumber)).ToDictionaryAsync(r => r.SapNumber!, ct);
+            var linked = await db.Requisitions.Where(r => r.SapNumber != null && numbers.Contains(r.SapNumber)).ToListAsync(ct);
+            // A corrupted mapping can link two records to one SAP number. Only the one SAP names as its reference gets
+            // the status; the others are reported instead of breaking every status poll.
+            var records = new Dictionary<string, RequisitionRecord>(StringComparer.Ordinal);
+            foreach (var group in linked.GroupBy(r => r.SapNumber!))
+            {
+                var pr = items.First(i => i.PurchaseRequisition == group.Key);
+                var owner = group.FirstOrDefault(r => r.SourceId == pr.ExternalReference) ?? (group.Count() == 1 ? group.First() : null);
+                if (owner is not null) records[group.Key] = owner;
+                foreach (var other in group.Where(r => r != owner))
+                    Ledger.Event(db, run, other.SourceId, RunEventKind.Conflict,
+                        $"Linked to SAP PR {group.Key}, which belongs to '{pr.ExternalReference}'; status not applied (mapping integrity)", time.GetUtcNow().UtcDateTime);
+            }
             var now = time.GetUtcNow().UtcDateTime;
             foreach (var pr in items)
             {
-                if (records.TryGetValue(pr.PurchaseRequisition, out var record))
+                if (records.TryGetValue(pr.PurchaseRequisition, out var record) && !SapMapper.IsKnownStatus(pr))
+                {
+                    Ledger.Event(db, run, record.SourceId, RunEventKind.StatusIgnored,
+                        $"SAP PR {pr.PurchaseRequisition} has unrecognised status codes (processing '{pr.ProcessingStatus}', release '{pr.ReleaseStatus}'); kept {record.ErpStatus}", now);
+                }
+                else if (records.TryGetValue(pr.PurchaseRequisition, out record))
                 {
                     record.SapETag = pr.ETag ?? record.SapETag;
                     if (ErpStatusApplier.Apply(db, run, record, SapMapper.ToErpStatus(pr), pr.LastChangeDateTime, SapMapper.PurchaseOrderOf(pr), now))
@@ -73,7 +86,7 @@ public sealed class StatusSyncStage(
         }
         while (nextLink is not null);
 
-        logger.LogInformation("Status sync applied {Count} status change(s)", applied);
+        logger.StatusChangesApplied(applied);
         return null;
     }
 }

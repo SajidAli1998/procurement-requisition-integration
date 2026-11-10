@@ -16,11 +16,10 @@ builder.Services.AddOpenApi();
 builder.Services.AddSingleton<SapStore>();
 builder.Services.AddSingleton<IdempotencyStore>();
 builder.Services.AddSingleton<WorkbookRemote>();
-// SAP payloads use PascalCase property names.
 builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.PropertyNamingPolicy = null);
 
 var app = builder.Build();
-app.Services.GetRequiredService<WorkbookRemote>(); // seed pre-existing documents at startup
+app.Services.GetRequiredService<WorkbookRemote>(); // resolving it seeds the pre-existing documents
 app.UseMockInfrastructure();
 app.MapOpenApi();
 app.MapScalarApiReference();
@@ -33,7 +32,7 @@ app.MapPost(EntitySet, async (HttpContext context, SapStore store, IdempotencySt
         using var reader = new StreamReader(context.Request.Body, Encoding.UTF8);
         var raw = await reader.ReadToEndAsync(context.RequestAborted);
 
-        // Workbook failure schedule: throttling and outages are answered before anything is processed.
+        // The workbook's scheduled throttling and outages are answered before anything is processed.
         var reference = ReferenceOf(raw);
         if (reference is not null && remote.ScheduledFailure(reference) is { } scheduled)
         {
@@ -83,7 +82,8 @@ app.MapPost(EntitySet, async (HttpContext context, SapStore store, IdempotencySt
             return ODataError.Create(400, "06/402", errors[0], errors);
         }
 
-        // The workbook's remote refuses a second document for the same reference and returns the existing one.
+        // The workbook's remote refuses a second document for a reference and points at the existing one,
+        // and refuses a version older than one it already knows.
         if (remote.RejectsDuplicateReferences && store.FindByExternalReference(input!.ExternalReference!) is [var existing, ..])
         {
             if (useKey) idempotency.Release(key);
@@ -92,7 +92,6 @@ app.MapPost(EntitySet, async (HttpContext context, SapStore store, IdempotencySt
                 $"Purchase requisition {existing.PurchaseRequisition} already exists for {existing.ExternalReference}",
                 facts: new Dictionary<string, object> { ["existingDocument"] = existing.PurchaseRequisition, ["remoteVersion"] = existing.ExternalVersion });
         }
-        // ...and refuses a stale version when it already knows a newer one (VERSION_CONFLICT).
         if (remote.NewerVersionThan(input!.ExternalReference!, input.ExternalVersion ?? 0) is { } current)
         {
             if (useKey) idempotency.Release(key);
@@ -104,7 +103,7 @@ app.MapPost(EntitySet, async (HttpContext context, SapStore store, IdempotencySt
         var created = store.Create(input!, remote.DocumentIdFor(input!.ExternalReference!));
         var location = $"{EntitySet}('{created.PurchaseRequisition}')";
         var etag = ETags.For(created.Version);
-        // Serialize once so an idempotent replay is byte-for-byte the original response.
+        // Serialized once so an idempotent replay is byte for byte the original response.
         var payload = JsonSerializer.Serialize(created, json);
         if (useKey)
         {
@@ -127,7 +126,9 @@ app.MapGet(EntitySet, (SapStore store, HttpRequest request, FaultInjector faults
 
         if (filter is not null && Filters.ExternalReference().Match(filter) is { Success: true } byRef)
         {
-            IReadOnlyList<SapRequisition> found = faults.Settings.ReferenceSearchLag ? [] : store.FindByExternalReference(byRef.Groups[1].Value);
+            // OData string literals escape a quote by doubling it: 'O''Brien'.
+            var reference = byRef.Groups[1].Value.Replace("''", "'");
+            IReadOnlyList<SapRequisition> found = faults.Settings.ReferenceSearchLag ? [] : store.FindByExternalReference(reference);
             return Results.Json(new Dictionary<string, object> { ["value"] = found });
         }
 
@@ -208,6 +209,26 @@ admin.MapPost("/requisitions/{number}/lifecycle", (string number, LifecycleChang
 admin.MapPost("/requisitions/{number}/touch", (string number, SapStore store) =>
     store.Touch(number) is { } pr ? Results.Json(pr) : Results.NotFound());
 admin.MapGet("/stats", (SapStore store) => Results.Ok(store.Stats()));
+admin.MapGet("/requisitions", (SapStore store) => Results.Json(store.All()))
+    .WithSummary("Every document (test evidence).");
+admin.MapPost("/requisitions", (PurchaseRequisitionInput input, SapStore store, string? number, SapLifecycle? lifecycle) =>
+    {
+        if (string.IsNullOrWhiteSpace(input.ExternalReference) || input.Items is not { Count: > 0 })
+            return ODataError.Create(400, "ADMIN", "ExternalReference and at least one item are required");
+        var created = store.Create(input, number, createdBy: "SAPGUI-USER");
+        return Results.Json(lifecycle is { } l and not SapLifecycle.Created ? store.SetLifecycle(created.PurchaseRequisition, l) : created);
+    })
+    .WithSummary("Create a document directly in SAP, as a user would in the SAP GUI (test fixtures).");
+admin.MapDelete("/requisitions/{number}", (string number, SapStore store) => store.Delete(number) ? Results.NoContent() : Results.NotFound());
+admin.MapPost("/requisitions/{number}/raw-status", (string number, RawStatus change, SapStore store) =>
+    store.SetRawStatus(number, change.ProcessingStatus, change.ReleaseStatus) is { } pr ? Results.Json(pr) : Results.NotFound())
+    .WithSummary("Test fault: set ProcessingStatus/ReleaseStatus codes directly, even inconsistent ones.");
+admin.MapPost("/idempotency/evict", (IdempotencyStore idempotency) =>
+    {
+        idempotency.Reset();
+        return Results.NoContent();
+    })
+    .WithSummary("Test fault: forget every Idempotency-Key, as SAP would after its retention period.");
 admin.MapPost("/reset", (SapStore store, IdempotencyStore idempotency, WorkbookRemote remote, Dataset? dataset) =>
 {
     remote.Reset(dataset ?? remote.Dataset, store);
@@ -235,16 +256,17 @@ static string? ReferenceOf(string raw)
 namespace Mocks.SapApi
 {
     public sealed record LifecycleChange(SapLifecycle Lifecycle);
+    public sealed record RawStatus(string? ProcessingStatus, string? ReleaseStatus);
 
     internal static partial class Filters
     {
-        [GeneratedRegex(@"^\s*ExternalReference\s+eq\s+'([^']+)'\s*$")]
+        [GeneratedRegex(@"^\s*ExternalReference\s+eq\s+'((?:[^']|'')+)'\s*$")]
         public static partial Regex ExternalReference();
 
         [GeneratedRegex(@"^\s*LastChangeDateTime\s+gt\s+(?:datetimeoffset')?([^'\s]+)'?\s*$")]
         public static partial Regex ChangedSince();
     }
 
-    /// <summary>Marker type for WebApplicationFactory in tests.</summary>
+    // Entry point type for WebApplicationFactory in tests.
     public sealed class SapApiMarker;
 }

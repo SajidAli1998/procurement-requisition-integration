@@ -262,7 +262,7 @@
         "tags": [
           "Admin"
         ],
-        "summary": "Reload the data: dataset=Workbook (the client's workbook, default) or Generated (seed, count).",
+        "summary": "Reload the data: dataset=Workbook (the client's workbook, default), Generated (seed, count) or Empty.",
         "parameters": [
           {
             "name": "dataset",
@@ -293,6 +293,116 @@
                 "string"
               ],
               "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/_admin/requisitions": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Every record as stored (test evidence).",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/_admin/requisitions/{id}/raw": {
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Store a record exactly as given, valid or not (test fixtures). version forces the version number.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JsonObject"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/_admin/requisitions/{id}": {
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/_admin/requisitions/{id}/hide-from-list": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Test fault: the list skips this record (as a lagging index would); GET by id still finds it.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hidden",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -338,10 +448,17 @@
   },
   "components": {
     "schemas": {
+      "BodyTransform": {
+        "enum": [
+          "Truncate",
+          "SetField"
+        ]
+      },
       "Dataset": {
         "enum": [
           "Workbook",
           "Generated",
+          "Empty",
           null
         ]
       },
@@ -378,7 +495,11 @@
           "Error",
           "Throttle",
           "LostResponse",
-          "Delay"
+          "Delay",
+          "Abort",
+          "Respond",
+          "CommitThenRespond",
+          "CommitThenTransform"
         ]
       },
       "FaultSettings": {
@@ -506,6 +627,39 @@
               "string"
             ],
             "format": "int32"
+          },
+          "bodyContains": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "retryAfterAsDate": {
+            "type": "boolean"
+          },
+          "omitRetryAfter": {
+            "type": "boolean"
+          },
+          "body": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "transform": {
+            "$ref": "#/components/schemas/BodyTransform"
+          },
+          "field": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "value": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       }

@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 
 namespace Procurement.Sync.Reporting;
 
-/// <summary>Writes a report as JSON (for machines), Markdown (for repos and chat) and HTML (for people).</summary>
 public sealed class ReportWriter(IOptions<SyncOptions> options)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
@@ -15,7 +14,7 @@ public sealed class ReportWriter(IOptions<SyncOptions> options)
         Converters = { new JsonStringEnumConverter() },
     };
 
-    /// <returns>Path of the HTML report.</returns>
+    // Returns the path of the HTML report.
     public async Task<string> WriteAsync(ReconciliationReport report, CancellationToken ct)
     {
         var directory = Path.GetFullPath(options.Value.ReportDirectory);
@@ -35,30 +34,22 @@ public sealed class ReportWriter(IOptions<SyncOptions> options)
         return Path.Combine(directory, $"{report.RunId}.html");
     }
 
-    private static string Icon(InvariantOutcome o) => o switch
-    {
-        InvariantOutcome.Pass => "✅",
-        InvariantOutcome.Warn => "⚠️",
-        InvariantOutcome.Fail => "❌",
-        _ => "⏭️",
-    };
-
     private static string Cell(string? s) => (s ?? "").Replace("|", "\\|").Replace("\n", " ");
 
     public static string Markdown(ReconciliationReport r)
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"# Reconciliation report — {r.RunId}");
+        sb.AppendLine($"# Reconciliation report: {r.RunId}");
         sb.AppendLine();
-        sb.AppendLine($"**Status:** {r.Status}{(r.Message is null ? "" : $" — {r.Message}")}  ");
+        sb.AppendLine($"**Status:** {r.Status}{(r.Message is null ? "" : $" ({r.Message})")}  ");
         sb.AppendLine($"**Trigger:** {r.Trigger} · **Started:** {r.StartedAt:u} · **Generated:** {r.GeneratedAt:u}");
         sb.AppendLine();
 
         sb.AppendLine("## Invariants");
         sb.AppendLine();
-        sb.AppendLine("| | Check | Detail |");
+        sb.AppendLine("| Result | Check | Detail |");
         sb.AppendLine("|---|---|---|");
-        foreach (var i in r.Invariants) sb.AppendLine($"| {Icon(i.Outcome)} | {i.Name} | {Cell(i.Detail)} |");
+        foreach (var i in r.Invariants) sb.AppendLine($"| {i.Outcome} | {i.Name} | {Cell(i.Detail)} |");
         sb.AppendLine();
 
         sb.AppendLine("## This run");
@@ -84,7 +75,7 @@ public sealed class ReportWriter(IOptions<SyncOptions> options)
             sb.AppendLine("| Currency | Source count | Source amount | SAP count | SAP amount | Match |");
             sb.AppendLine("|---|---:|---:|---:|---:|---|");
             foreach (var t in r.Totals)
-                sb.AppendLine($"| {t.Currency} | {t.LocalCount} | {t.LocalAmount:N2} | {t.SapCount} | {t.SapAmount:N2} | {(t.Matches ? "✅" : "❌")} |");
+                sb.AppendLine($"| {t.Currency} | {t.LocalCount} | {t.LocalAmount:N2} | {t.SapCount} | {t.SapAmount:N2} | {(t.Matches ? "Yes" : "No")} |");
             if (r.ExcludedFromTotals > 0) sb.AppendLine($"\n_{r.ExcludedFromTotals} requisition(s) excluded: SAP holds an earlier version._");
             sb.AppendLine();
         }
@@ -141,7 +132,7 @@ public sealed class ReportWriter(IOptions<SyncOptions> options)
         return sb.ToString();
     }
 
-    /// <summary>Per-requisition outcomes as CSV (opens in Excel), with the same columns as the client's Reconciliation_Expected sheet.</summary>
+    // Same columns as the client's Reconciliation_Expected sheet.
     public static string Csv(ReconciliationReport r)
     {
         static string Q(object? v)
@@ -202,14 +193,14 @@ public sealed class ReportWriter(IOptions<SyncOptions> options)
 
         sb.Append("<h2>Invariants</h2><div class=\"wrap\"><table><tr><th>Result</th><th>Check</th><th>Detail</th></tr>");
         foreach (var i in r.Invariants)
-            sb.Append($"<tr><td class=\"{i.Outcome}\">{Icon(i.Outcome)} {i.Outcome}</td><td>{E(i.Name)}</td><td>{E(i.Detail)}</td></tr>");
+            sb.Append($"<tr><td class=\"{i.Outcome}\">{i.Outcome}</td><td>{E(i.Name)}</td><td>{E(i.Detail)}</td></tr>");
         sb.Append("</table></div>");
 
         if (r.Totals.Count > 0)
         {
             sb.Append("<h2>Amounts: source vs SAP</h2><div class=\"wrap\"><table><tr><th>Currency</th><th class=\"num\">Source count</th><th class=\"num\">Source amount</th><th class=\"num\">SAP count</th><th class=\"num\">SAP amount</th><th>Match</th></tr>");
             foreach (var t in r.Totals)
-                sb.Append($"<tr><td>{E(t.Currency)}</td><td class=\"num\">{t.LocalCount}</td><td class=\"num\">{t.LocalAmount:N2}</td><td class=\"num\">{t.SapCount}</td><td class=\"num\">{t.SapAmount:N2}</td><td class=\"{(t.Matches ? "Pass" : "Fail")}\">{(t.Matches ? "✅" : "❌")}</td></tr>");
+                sb.Append($"<tr><td>{E(t.Currency)}</td><td class=\"num\">{t.LocalCount}</td><td class=\"num\">{t.LocalAmount:N2}</td><td class=\"num\">{t.SapCount}</td><td class=\"num\">{t.SapAmount:N2}</td><td class=\"{(t.Matches ? "Pass" : "Fail")}\">{(t.Matches ? "Yes" : "No")}</td></tr>");
             sb.Append("</table></div>");
         }
 

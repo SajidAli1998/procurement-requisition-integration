@@ -20,5 +20,6 @@
     <ProjectReference Include="..\..\src\Mocks.SapApi\Mocks.SapApi.csproj" />
     <ProjectReference Include="..\..\src\Procurement.AssistantApi\Procurement.AssistantApi.csproj" />
     <ProjectReference Include="..\..\src\Procurement.SyntheticData\Procurement.SyntheticData.csproj" />
+    <ProjectReference Include="..\..\src\Procurement.Scenarios\Procurement.Scenarios.csproj" />
   </ItemGroup>
 </Project>

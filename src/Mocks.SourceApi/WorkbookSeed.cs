@@ -4,21 +4,17 @@ using Procurement.SyntheticData;
 
 namespace Mocks.SourceApi;
 
-/// <summary>
-/// Serves the client's workbook as the source system's data. Each workbook row becomes a requisition in the
-/// source API's own JSON shape; nothing is corrected, so blank dates and zero totals reach the integration as-is.
-/// </summary>
+// Nothing is corrected on the way in: blank dates and zero totals reach the integration as they are.
 public static class WorkbookSeed
 {
     public static SeedResult Build(DataPack pack, EmployeeDirectory directory, DateTime nowUtc)
     {
         var records = new List<SeedRecord>(pack.Requisitions.Count);
         var manifest = new List<SeedManifestEntry>(pack.Requisitions.Count);
-        // A concurrent edit the list endpoint has not caught up with yet (see RequisitionStore.List).
         var conflicts = pack.Failures.Where(f => f.Mode == "VERSION_CONFLICT" && f.RemoteCurrentVersion is not null)
             .ToDictionary(f => f.RequisitionId, f => f.RemoteCurrentVersion!.Value);
 
-        // Keep the workbook's order (and so its page numbers) as the change order: one second apart, ending an hour ago.
+        // Workbook order becomes change order (one second apart), so page numbers match the workbook.
         var start = nowUtc.AddHours(-1).AddSeconds(-pack.Requisitions.Count);
         for (var i = 0; i < pack.Requisitions.Count; i++)
         {

@@ -1,6 +1,5 @@
 namespace Procurement.Contracts;
 
-/// <summary>Canonical, validated requisition: the integration's internal model, independent of either system's wire format.</summary>
 public sealed record Requisition(
     string Id,
     long Version,

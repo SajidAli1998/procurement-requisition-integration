@@ -1,9 +1,9 @@
 namespace Mocks.SapApi;
 
-/// <summary>SAP Gateway style error body: { "error": { "code", "message": { "lang", "value" } } }.</summary>
+// SAP Gateway error shape: { "error": { "code", "message": { "lang", "value" }, "innererror" } }.
+// facts go into innererror, e.g. the existing document id on a duplicate.
 public static class ODataError
 {
-    /// <param name="facts">Machine-readable extras added to innererror, e.g. the existing document id on a duplicate.</param>
     public static IResult Create(int status, string code, string message, IEnumerable<string>? details = null,
         IReadOnlyDictionary<string, object>? facts = null)
     {

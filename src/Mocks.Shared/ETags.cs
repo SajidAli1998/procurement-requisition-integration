@@ -4,7 +4,6 @@ namespace Mocks.Shared;
 
 public enum PreconditionResult { Ok, Missing, Failed }
 
-/// <summary>Strong ETags derived from a monotonically increasing entity version.</summary>
 public static class ETags
 {
     public static string For(long version) => $"\"{version}\"";
@@ -16,9 +15,9 @@ public static class ETags
         if (header.Trim() == "*") return PreconditionResult.Ok;
 
         var expected = For(currentVersion);
+        // If-Match uses strong comparison (RFC 9110 13.1.1), so weak tags never match.
         foreach (var candidate in header.Split(',', StringSplitOptions.TrimEntries))
         {
-            // If-Match uses strong comparison (RFC 9110 §13.1.1); weak tags never match.
             if (candidate == expected) return PreconditionResult.Ok;
         }
         return PreconditionResult.Failed;

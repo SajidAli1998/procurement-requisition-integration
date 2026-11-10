@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,10 +12,9 @@ namespace Mocks.Shared;
 
 public sealed class MockRateLimitOptions
 {
-    /// <summary>Tokens added per second; 0 disables rate limiting.</summary>
+    // 0 turns rate limiting off.
     public int PermitsPerSecond { get; set; } = 20;
 
-    /// <summary>Bucket size, i.e. how many requests may burst at once.</summary>
     public int Burst { get; set; } = 20;
 }
 
@@ -40,7 +38,6 @@ public static class MockInfrastructure
                 if (limits.PermitsPerSecond <= 0 || MockPaths.IsInfrastructure(context.Request.Path))
                     return RateLimitPartition.GetNoLimiter("unlimited");
 
-                // One bucket per calling client, falling back to a shared bucket.
                 var client = context.Request.Headers["X-Client-Id"].ToString();
                 return RateLimitPartition.GetTokenBucketLimiter(string.IsNullOrEmpty(client) ? "anonymous" : client,
                     _ => new TokenBucketRateLimiterOptions
@@ -59,7 +56,7 @@ public static class MockInfrastructure
                     : 1;
                 var response = context.HttpContext.Response;
                 response.Headers.RetryAfter = retryAfter.ToString(CultureInfo.InvariantCulture);
-                // IETF draft-ietf-httpapi-ratelimit-headers: advertise the policy to clients.
+                // Headers from draft-ietf-httpapi-ratelimit-headers.
                 response.Headers["RateLimit-Policy"] = $"\"default\";q={limits.Burst};w=1";
                 response.Headers["RateLimit"] = $"\"default\";r=0;t={retryAfter}";
                 await Results.Problem(statusCode: 429, title: "Too many requests",
@@ -79,7 +76,6 @@ public static class MockInfrastructure
         return app;
     }
 
-    /// <summary>Runtime controls for chaos: read, replace, script and reset faults.</summary>
     public static IEndpointRouteBuilder MapFaultAdmin(this IEndpointRouteBuilder app)
     {
         var admin = app.MapGroup("/_admin/faults").WithTags("Admin");

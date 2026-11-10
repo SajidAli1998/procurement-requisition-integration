@@ -9,9 +9,8 @@ using Procurement.SyntheticData;
 namespace Procurement.ScenarioTests.Workbook;
 
 /// <summary>
-/// Runs every row of the workbook's AI_API_Contract_Tests sheet against the Assistant API.
-/// Who owns what, and who may raise requests, comes from data/employee-directory.json (our documented assumption,
-/// because the workbook does not say).
+/// Runs every row of the workbook's AI_API_Contract_Tests sheet. The workbook does not say who owns what or who may
+/// raise requests, so that comes from our own data/employee-directory.json.
 /// </summary>
 public sealed partial class WorkbookAssistantContractTests
 {
@@ -23,7 +22,7 @@ public sealed partial class WorkbookAssistantContractTests
     [Fact(DisplayName = "W07 All 60 AI_API_Contract_Tests rows return the expected status")]
     public async Task Contract_tests_from_the_workbook()
     {
-        await using var h = new SyncHarness(dataset: "Workbook");
+        await using var h = new SyncHarness(new() { ["Sync:Resilience:BreakerMinimumThroughput"] = "100" }, dataset: "Workbook");
         await h.RunAsync(); // so status reads include the transfer to SAP
         var results = new List<string>();
 
@@ -60,7 +59,7 @@ public sealed partial class WorkbookAssistantContractTests
         results.ShouldBeEmpty(string.Join(Environment.NewLine, results));
     }
 
-    /// <summary>"Create synthetic draft for Route control displays" → one item of that purpose, charged to the employee's cost centre.</summary>
+    /// <summary>"Create synthetic draft for Route control displays" becomes one item of that purpose, charged to the employee's cost centre.</summary>
     private static object DraftFor(PackApiTest test, Employee? employee)
     {
         var purpose = test.RequestSummary.Replace("Create synthetic draft for ", "", StringComparison.Ordinal);

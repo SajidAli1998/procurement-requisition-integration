@@ -97,7 +97,17 @@ admin.MapPost("/reset", (RequisitionStore store, Dataset? dataset, int? seed, in
     store.Reset(dataset ?? store.Dataset, seed ?? 42, count ?? 250);
     return Results.NoContent();
 })
-.WithSummary("Reload the data: dataset=Workbook (the client's workbook, default) or Generated (seed, count).");
+.WithSummary("Reload the data: dataset=Workbook (the client's workbook, default), Generated (seed, count) or Empty.");
+admin.MapGet("/requisitions", (RequisitionStore store) => Results.Ok(store.Snapshot()))
+    .WithSummary("Every record as stored (test evidence).");
+admin.MapPut("/requisitions/{id}/raw", (string id, JsonObject body, RequisitionStore store, long? version) =>
+        Results.Ok(store.Upsert(id, body, version)))
+    .WithSummary("Store a record exactly as given, valid or not (test fixtures). version forces the version number.");
+admin.MapDelete("/requisitions/{id}", (string id, RequisitionStore store) =>
+    store.Delete(id) ? Results.NoContent() : Results.Problem(statusCode: 404, title: $"Requisition {id} not found"));
+admin.MapPost("/requisitions/{id}/hide-from-list", (string id, RequisitionStore store, bool? hidden) =>
+    store.SetHiddenFromList(id, hidden ?? true) ? Results.NoContent() : Results.Problem(statusCode: 404, title: $"Requisition {id} not found"))
+    .WithSummary("Test fault: the list skips this record (as a lagging index would); GET by id still finds it.");
 admin.MapPost("/requisitions/{id}/edit", (string id, JsonObject patch, RequisitionStore store) =>
     store.Edit(id, patch) is { } body
         ? Results.Ok(body)
@@ -107,6 +117,6 @@ app.Run();
 
 namespace Mocks.SourceApi
 {
-    /// <summary>Marker type for WebApplicationFactory in tests.</summary>
+    // Entry point type for WebApplicationFactory in tests.
     public sealed class SourceApiMarker;
 }

@@ -16,7 +16,6 @@ public sealed record ChangeRow(string Key, string Kind, string? Detail);
 
 public sealed record PendingRow(string Key, string State, int Attempts, DateTime? NextAttemptAt, string? LastError);
 
-/// <summary>Explains what one run did, what is still wrong and what to do about it.</summary>
 public sealed record ReconciliationReport
 {
     public required string RunId { get; init; }
@@ -26,10 +25,9 @@ public sealed record ReconciliationReport
     public required string Status { get; init; }
     public string? Message { get; init; }
 
-    /// <summary>What happened in this run, by event kind.</summary>
     public required IReadOnlyDictionary<string, int> RunCounts { get; init; }
 
-    /// <summary>Where every known requisition stands now, by state.</summary>
+    // Every known requisition, not only the ones this run touched.
     public required IReadOnlyDictionary<string, int> StateTotals { get; init; }
 
     public required IReadOnlyDictionary<string, long> Transport { get; init; }
@@ -41,9 +39,7 @@ public sealed record ReconciliationReport
     public required IReadOnlyList<PendingRow> Pending { get; init; }
     public int ExcludedFromTotals { get; init; }
 
-    /// <summary>Per requisition touched by this run: result, attempts, failure category and explanation.</summary>
     public IReadOnlyList<RecordOutcome> Records { get; init; } = [];
 
-    /// <summary><see cref="Records"/> counted by result.</summary>
     public IReadOnlyDictionary<string, int> Outcomes => Records.GroupBy(r => r.Result).OrderBy(g => g.Key).ToDictionary(g => g.Key, g => g.Count());
 }

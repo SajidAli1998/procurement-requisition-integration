@@ -8,10 +8,6 @@ using Procurement.Sync.Store;
 
 namespace Procurement.Sync.Pipeline;
 
-/// <summary>
-/// One sync cycle: extract → dispatch → status sync → write-back → reconciliation.
-/// Guarded by a lease so overlapping runs cannot double-process.
-/// </summary>
 public sealed class SyncRunner(
     IDbContextFactory<SyncDbContext> dbFactory,
     LeaseManager leases,
@@ -33,7 +29,6 @@ public sealed class SyncRunner(
     public Task<RunResult> RunAsync(string trigger, CancellationToken ct) =>
         ExecuteAsync(trigger, extract.RunAsync, ct);
 
-    /// <summary>Replays one requisition (e.g. from quarantine), then runs dispatch, status sync and reporting as usual.</summary>
     public Task<RunResult> ReplayAsync(string sourceId, CancellationToken ct) =>
         ExecuteAsync($"replay {sourceId}", (run, token) => extract.ReprocessAsync(run, sourceId, token), ct);
 
@@ -43,7 +38,7 @@ public sealed class SyncRunner(
         var runId = $"run-{Now:yyyyMMdd-HHmmss}-{Guid.NewGuid():N}"[..29];
         if (!await leases.TryAcquireAsync(LeaseName, runId, options.Value.LeaseDuration, ct))
         {
-            logger.LogWarning("Another run holds the lease; skipping");
+            logger.LeaseHeld();
             return RunResult.SkippedRun(runId, "Another run is in progress");
         }
 
@@ -56,7 +51,7 @@ public sealed class SyncRunner(
                 db.Runs.Add(new SyncRun { Id = runId, StartedAt = run.StartedAt, Status = RunStatus.Running, Trigger = trigger });
                 await db.SaveChangesAsync(ct);
             }
-            logger.LogInformation("Run {RunId} started ({Trigger})", runId, trigger);
+            logger.RunStarted(runId, trigger);
 
             await RecoverInterruptedAsync(run, ct);
 
@@ -67,13 +62,13 @@ public sealed class SyncRunner(
             }
             catch (Exception ex) when (IsDownstreamFailure(ex) && !ct.IsCancellationRequested)
             {
-                logger.LogWarning(ex, "Extract stopped early");
+                logger.ExtractStopped(ex);
                 issues.Add($"Source read stopped early ({ex.Message}); progress up to the last checkpoint is kept");
             }
 
             // Dispatch still runs: everything staged before a source failure is valid and should be sent.
             var dispatched = await dispatch.RunAsync(run, ct);
-            if (dispatched.CircuitOpen) issues.Add("SAP circuit breaker opened; remaining records stay queued for the next run");
+            if (dispatched.CircuitOpen) issues.Add(dispatched.StopReason ?? "SAP circuit breaker opened; remaining records stay queued for the next run");
 
             if (await statusSync.RunAsync(run, ct) is { } statusIssue) issues.Add(statusIssue);
             if (await writeback.RunAsync(run, ct) is { } writebackIssue) issues.Add(writebackIssue);
@@ -86,7 +81,7 @@ public sealed class SyncRunner(
         }
     }
 
-    /// <summary>Records left in Sending by a crashed run may or may not have reached SAP.</summary>
+    // Records left in Sending by a crashed run may or may not have reached SAP.
     private async Task RecoverInterruptedAsync(RunContext run, CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
@@ -131,10 +126,10 @@ public sealed class SyncRunner(
         catch (Exception ex) when (!ct.IsCancellationRequested)
         {
             // The run's work is already committed; a reporting failure must not undo or hide it.
-            logger.LogError(ex, "Could not write the reconciliation report for {RunId}", run.RunId);
+            logger.ReportFailed(ex, run.RunId);
         }
 
-        logger.LogInformation("Run {RunId} finished: {Status}", run.RunId, status);
+        logger.RunFinished(run.RunId, status);
         return new RunResult(run.RunId, status, message, events, metrics.Snapshot(), metrics.TotalRetryWait, openQuarantine, pending)
         {
             Report = report,
@@ -143,5 +138,5 @@ public sealed class SyncRunner(
     }
 
     private static bool IsDownstreamFailure(Exception ex) =>
-        ex is HttpRequestException or ExecutionRejectedException or TaskCanceledException or IOException;
+        ex is HttpRequestException or ExecutionRejectedException or TaskCanceledException or IOException or System.Text.Json.JsonException;
 }

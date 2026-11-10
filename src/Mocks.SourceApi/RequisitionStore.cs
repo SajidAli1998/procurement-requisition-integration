@@ -10,13 +10,9 @@ public sealed record ErpStatusUpdate(string ErpReference, string ErpStatus, Date
 
 public enum UpdateOutcome { Updated, NotFound, PreconditionMissing, PreconditionFailed, NotAllowed }
 
-/// <summary>Which data set the source serves: the client's workbook (default) or our generated stress set.</summary>
-public enum Dataset { Workbook, Generated }
+public enum Dataset { Workbook, Generated, Empty }
 
-/// <summary>
-/// In-memory store for the internal requisition system. Records are kept as raw JSON so
-/// malformed records can be served exactly as an imperfect upstream would serve them.
-/// </summary>
+// Records stay raw JSON so malformed ones are served exactly as an imperfect upstream would serve them.
 public sealed class RequisitionStore
 {
     private sealed class Entry(string key, long version, DateTime updatedAt, JsonObject body, long? listedVersion = null)
@@ -26,6 +22,7 @@ public sealed class RequisitionStore
         public DateTime UpdatedAt { get; set; } = updatedAt;
         public JsonObject Body { get; } = body;
         public long? ListedVersion { get; set; } = listedVersion;
+        public bool HiddenFromList { get; set; }
     }
 
     private readonly Lock _gate = new();
@@ -56,9 +53,12 @@ public sealed class RequisitionStore
     public void Reset(Dataset dataset, int seed, int count)
     {
         var now = _time.GetUtcNow().UtcDateTime;
-        var data = dataset == Dataset.Workbook
-            ? WorkbookSeed.Build(DataPack.Load(_workbookPath), EmployeeDirectory.Load(_directoryPath), now)
-            : SeedData.Generate(seed, count, now);
+        var data = dataset switch
+        {
+            Dataset.Workbook => WorkbookSeed.Build(DataPack.Load(_workbookPath), EmployeeDirectory.Load(_directoryPath), now),
+            Dataset.Empty => new SeedResult([], []),
+            _ => SeedData.Generate(seed, count, now),
+        };
         lock (_gate)
         {
             Dataset = dataset;
@@ -76,6 +76,7 @@ public sealed class RequisitionStore
         lock (_gate)
         {
             var matches = _entries.Values
+                .Where(e => !e.HiddenFromList)
                 .Where(e => after is null || after.Value.IsBefore(e.UpdatedAt, e.Key))
                 .Where(e => updatedAfter is null || e.UpdatedAt > updatedAfter)
                 .Where(e => status is null || StatusOf(e.Body) == status)
@@ -88,14 +89,13 @@ public sealed class RequisitionStore
             var page = matches.Take(limit).ToList();
 
             var items = new JsonArray();
-            // Fault mode: repeat the previous page's last record, as some buggy pagers do.
             if (pageOverlap && after is not null && _entries.TryGetValue(after.Value.Key, out var previous))
             {
                 items.Add(Render(previous, listed: true));
             }
             foreach (var e in page) items.Add(Render(e, listed: true));
 
-            // The cursor is returned even on the last page: it is the durable resume point for the next run.
+            // Returned even on the last page, because it is where the next run resumes.
             var next = page.Count > 0 ? new KeysetCursor(page[^1].UpdatedAt, page[^1].Key).Encode() : after?.Encode();
             return new RequisitionPage(items, next, hasMore);
         }
@@ -106,7 +106,7 @@ public sealed class RequisitionStore
         lock (_gate)
         {
             if (!_entries.TryGetValue(id, out var e)) return null;
-            // Reading the record itself is authoritative; afterwards the list shows the current version too.
+            // Once the record itself has been read, the list catches up to the current version too.
             e.ListedVersion = null;
             return (Render(e), e.Version);
         }
@@ -136,12 +136,11 @@ public sealed class RequisitionStore
         }
     }
 
-    /// <summary>Creates a new requisition awaiting approval (used by the assistant API).</summary>
     public (JsonObject Body, long Version) Create(JsonObject body)
     {
         lock (_gate)
         {
-            // Workbook ids are REQ-7001..REQ-7120; generated ones REQ-2026-000001. New requests continue the same series.
+            // Continue the current series: REQ-7001 style for the workbook, REQ-2026-000001 style for generated data.
             var prefix = Dataset == Dataset.Workbook ? "REQ-" : "REQ-2026-";
             var next = _entries.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal))
                 .Select(k => int.TryParse(k.AsSpan(prefix.Length), out var n) ? n : 0).DefaultIfEmpty(0).Max() + 1;
@@ -158,7 +157,6 @@ public sealed class RequisitionStore
         }
     }
 
-    /// <summary>Withdraws a requisition that is still awaiting approval.</summary>
     public (UpdateOutcome Outcome, JsonObject? Body, long Version) Withdraw(string id, HttpRequest request)
     {
         lock (_gate)
@@ -176,7 +174,6 @@ public sealed class RequisitionStore
         }
     }
 
-    /// <summary>Simulates a user editing the requisition in the source system (admin only).</summary>
     public JsonObject? Edit(string id, JsonObject mergePatch)
     {
         lock (_gate)
@@ -186,6 +183,48 @@ public sealed class RequisitionStore
             JsonMergePatch.Apply(e.Body, mergePatch);
             Touch(e);
             return Render(e);
+        }
+    }
+
+    // A forced version simulates a buggy source that changes content without bumping the version.
+    public JsonObject Upsert(string key, JsonObject body, long? version)
+    {
+        lock (_gate)
+        {
+            if (_entries.TryGetValue(key, out var existing))
+            {
+                var replaced = new Entry(key, version ?? existing.Version + 1, _clock.UtcNow, body);
+                _entries[key] = replaced;
+                return Render(replaced);
+            }
+            var entry = new Entry(key, version ?? 1, _clock.UtcNow, body);
+            _entries[key] = entry;
+            return Render(entry);
+        }
+    }
+
+    public bool Delete(string id)
+    {
+        lock (_gate) return _entries.Remove(id);
+    }
+
+    public bool SetHiddenFromList(string id, bool hidden)
+    {
+        lock (_gate)
+        {
+            if (!_entries.TryGetValue(id, out var e)) return false;
+            e.HiddenFromList = hidden;
+            return true;
+        }
+    }
+
+    public JsonArray Snapshot()
+    {
+        lock (_gate)
+        {
+            var all = new JsonArray();
+            foreach (var e in _entries.Values.OrderBy(e => e.Key, StringComparer.Ordinal)) all.Add(Render(e));
+            return all;
         }
     }
 

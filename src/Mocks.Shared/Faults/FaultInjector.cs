@@ -57,11 +57,16 @@ public sealed class FaultInjector
         }
     }
 
-    public FaultDecision Decide(string method, string path)
+    public bool NeedsBody
+    {
+        get { lock (_gate) return _script.Any(f => f.BodyContains is not null); }
+    }
+
+    public FaultDecision Decide(string method, string path, string? body = null)
     {
         lock (_gate)
         {
-            var decision = DecideScripted(method, path) ?? DecideRandom(method);
+            var decision = DecideScripted(method, path, body) ?? DecideRandom(method);
             if (decision.Kind != FaultKind.None)
             {
                 _injected[decision.Kind] = _injected.GetValueOrDefault(decision.Kind) + 1;
@@ -70,13 +75,14 @@ public sealed class FaultInjector
         }
     }
 
-    private FaultDecision? DecideScripted(string method, string path)
+    private FaultDecision? DecideScripted(string method, string path, string? body)
     {
         for (var i = 0; i < _script.Count; i++)
         {
             var fault = _script[i];
             if (fault.Method is not null && !string.Equals(fault.Method, method, StringComparison.OrdinalIgnoreCase)) continue;
             if (fault.PathContains is not null && !path.Contains(fault.PathContains, StringComparison.OrdinalIgnoreCase)) continue;
+            if (fault.BodyContains is not null && (body is null || !body.Contains(fault.BodyContains, StringComparison.Ordinal))) continue;
 
             if (fault.Skip > 0)
             {
@@ -87,14 +93,15 @@ public sealed class FaultInjector
             if (fault.Count <= 1) _script.RemoveAt(i);
             else _script[i] = fault with { Count = fault.Count - 1 };
 
-            return fault.Kind switch
+            return (fault.Kind switch
             {
                 FaultKind.Throttle => new FaultDecision(FaultKind.Throttle, 429, fault.RetryAfterSeconds),
                 FaultKind.Error => new FaultDecision(FaultKind.Error, fault.StatusCode),
                 FaultKind.LostResponse => new FaultDecision(FaultKind.LostResponse),
                 FaultKind.Delay => new FaultDecision(FaultKind.Delay, DelayMs: fault.DelayMs),
-                _ => FaultDecision.None,
-            };
+                FaultKind.None => FaultDecision.None,
+                _ => new FaultDecision(fault.Kind, fault.StatusCode, DelayMs: fault.DelayMs),
+            }) with { Script = fault };
         }
         return null;
     }

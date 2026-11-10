@@ -7,10 +7,7 @@ using Procurement.Sync.Store;
 
 namespace Procurement.Sync.Pipeline;
 
-/// <summary>
-/// Writes ERP reference and status back onto source requisitions, guarded by If-Match.
-/// On 412 (someone edited the requisition meanwhile) it re-reads and re-applies only the status fields.
-/// </summary>
+// Guarded by If-Match. A 412 means someone edited the requisition meanwhile: re-read and send only the status again.
 public sealed class WritebackStage(
     IDbContextFactory<SyncDbContext> dbFactory,
     SourceClient source,
@@ -20,7 +17,6 @@ public sealed class WritebackStage(
 {
     private const int MaxConflictRetries = 3;
 
-    /// <returns>An issue description if some write-backs could not be completed, otherwise null.</returns>
     public async Task<string?> RunAsync(RunContext run, CancellationToken ct)
     {
         List<string> pending;
@@ -38,7 +34,7 @@ public sealed class WritebackStage(
                 if (!await WriteBackAsync(run, id, token)) Interlocked.Increment(ref failed);
             });
 
-        if (failed > 0) logger.LogWarning("{Count} status write-back(s) left pending", failed);
+        if (failed > 0) logger.WritebacksPending(failed);
         return failed > 0 ? $"{failed} status write-back(s) to the source are pending and will be retried" : null;
     }
 

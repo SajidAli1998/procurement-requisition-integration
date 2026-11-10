@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="DocumentFormat.OpenXml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Procurement.Sync\Procurement.Sync.csproj" />
+    <ProjectReference Include="..\Mocks.SourceApi\Mocks.SourceApi.csproj" />
+    <ProjectReference Include="..\Mocks.SapApi\Mocks.SapApi.csproj" />
+    <ProjectReference Include="..\Procurement.AssistantApi\Procurement.AssistantApi.csproj" />
+    <ProjectReference Include="..\Procurement.SyntheticData\Procurement.SyntheticData.csproj" />
+  </ItemGroup>
+</Project>

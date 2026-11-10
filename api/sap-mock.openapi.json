@@ -276,6 +276,124 @@
         }
       }
     },
+    "/_admin/requisitions": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Every document (test evidence).",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Create a document directly in SAP, as a user would in the SAP GUI (test fixtures).",
+        "parameters": [
+          {
+            "name": "number",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lifecycle",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SapLifecycle"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseRequisitionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/_admin/requisitions/{number}": {
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/_admin/requisitions/{number}/raw-status": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Test fault: set ProcessingStatus/ReleaseStatus codes directly, even inconsistent ones.",
+        "parameters": [
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RawStatus"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/_admin/idempotency/evict": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Test fault: forget every Idempotency-Key, as SAP would after its retention period.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/_admin/reset": {
       "post": {
         "tags": [
@@ -301,6 +419,12 @@
   },
   "components": {
     "schemas": {
+      "BodyTransform": {
+        "enum": [
+          "Truncate",
+          "SetField"
+        ]
+      },
       "Dataset": {
         "enum": [
           "Workbook",
@@ -314,7 +438,11 @@
           "Error",
           "Throttle",
           "LostResponse",
-          "Delay"
+          "Delay",
+          "Abort",
+          "Respond",
+          "CommitThenRespond",
+          "CommitThenTransform"
         ]
       },
       "FaultSettings": {
@@ -390,6 +518,158 @@
           }
         }
       },
+      "PurchaseRequisitionInput": {
+        "type": "object",
+        "properties": {
+          "PurchaseRequisitionType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "PurReqnDescription": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ExternalReference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ExternalVersion": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "to_PurchaseReqnItem": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PurchaseRequisitionItemInput"
+            }
+          }
+        }
+      },
+      "PurchaseRequisitionItemInput": {
+        "type": "object",
+        "properties": {
+          "PurchaseRequisitionItem": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Material": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "PurchaseRequisitionItemText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "MaterialGroup": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "RequestedQuantity": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "BaseUnit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "PurchaseRequisitionPrice": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "PurReqnItemCurrency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Plant": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "CompanyCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "PurchasingGroup": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "TaxCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "DeliveryDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "RawStatus": {
+        "required": [
+          "ProcessingStatus",
+          "ReleaseStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "ProcessingStatus": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ReleaseStatus": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SapLifecycle": {
         "enum": [
           "Created",
@@ -460,6 +740,39 @@
               "string"
             ],
             "format": "int32"
+          },
+          "BodyContains": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "RetryAfterAsDate": {
+            "type": "boolean"
+          },
+          "OmitRetryAfter": {
+            "type": "boolean"
+          },
+          "Body": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Transform": {
+            "$ref": "#/components/schemas/BodyTransform"
+          },
+          "Field": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "Value": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       }

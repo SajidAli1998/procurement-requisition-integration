@@ -12,7 +12,7 @@ public enum WritebackStatus { Ok, PreconditionFailed, NotFound, Failed }
 
 public sealed record WritebackResult(WritebackStatus Status, string? ETag = null, string? Error = null);
 
-/// <summary>Typed client for the internal requisition API. Items are returned raw so each can be validated on its own.</summary>
+// Items stay raw JSON so each one can be validated on its own.
 public sealed class SourceClient(HttpClient http)
 {
     public async Task<SourcePage> GetChangesAsync(string? cursor, int limit, CancellationToken ct)
@@ -21,13 +21,22 @@ public sealed class SourceClient(HttpClient http)
         using var response = await http.GetAsync(url, ct);
         response.EnsureSuccessStatusCode();
 
-        await using var stream = await response.Content.ReadAsStreamAsync(ct);
-        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
-        var root = document.RootElement;
-        var items = root.GetProperty("items").EnumerateArray().Select(e => e.Clone()).ToList();
-        var next = root.TryGetProperty("nextCursor", out var c) && c.ValueKind == JsonValueKind.String ? c.GetString() : null;
-        var hasMore = root.TryGetProperty("hasMore", out var h) && h.ValueKind == JsonValueKind.True;
-        return new SourcePage(items, next, hasMore);
+        try
+        {
+            await using var stream = await response.Content.ReadAsStreamAsync(ct);
+            using var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+            var root = document.RootElement;
+            var items = root.GetProperty("items").EnumerateArray().Select(e => e.Clone()).ToList();
+            var next = root.TryGetProperty("nextCursor", out var c) && c.ValueKind == JsonValueKind.String ? c.GetString() : null;
+            var hasMore = root.TryGetProperty("hasMore", out var h) && h.ValueKind == JsonValueKind.True;
+            if (hasMore && next is null) throw new InvalidOperationException("hasMore is true but no nextCursor was given");
+            return new SourcePage(items, next, hasMore);
+        }
+        catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException)
+        {
+            // Treated like an outage: the page is not processed and the checkpoint stays where it was.
+            throw new HttpRequestException($"The source returned an unreadable page: {ex.Message}", ex);
+        }
     }
 
     public async Task<(JsonElement Body, string ETag)?> GetAsync(string id, CancellationToken ct)

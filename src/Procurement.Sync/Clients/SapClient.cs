@@ -13,36 +13,37 @@ public enum SapCallStatus
     /// <summary>201 replayed by the server for a repeated Idempotency-Key.</summary>
     Replayed,
     NotFound,
-    /// <summary>4xx business or validation error: retrying will not help.</summary>
     Rejected,
     PreconditionFailed,
-    /// <summary>409 business conflict, e.g. the requisition is already released.</summary>
+    /// <summary>409 business conflict, for example the requisition is already released.</summary>
     Locked,
     /// <summary>409 for an Idempotency-Key whose first request is still running.</summary>
     InProgress,
-    /// <summary>409: SAP already holds a requisition for this reference (<see cref="SapCall{T}.ExistingDocument"/>).</summary>
     Duplicate,
-    /// <summary>409: SAP knows a newer source version than the one sent (<see cref="SapCall{T}.CurrentVersion"/>).</summary>
+    /// <summary>409: SAP knows a newer source version than the one sent.</summary>
     VersionConflict,
-    /// <summary>429/5xx persisted through all transport retries.</summary>
+    /// <summary>429/5xx that outlasted all transport retries.</summary>
     Transient,
-    /// <summary>No response for a write: it may or may not have been applied.</summary>
+    /// <summary>No response for a write, so it may or may not have been applied.</summary>
     Ambiguous,
     CircuitOpen,
+    /// <summary>401/403: a configuration problem, not a problem with the requisition.</summary>
+    Unauthorized,
 }
 
 public sealed record SapCall<T>(SapCallStatus Status, T? Value = default, string? ETag = null, string? Error = null, int? HttpStatus = null)
 {
     public bool IsSuccess => Status is SapCallStatus.Ok or SapCallStatus.Created or SapCallStatus.Replayed;
 
-    /// <summary>For writes: the HTTP status of every attempt the transport made (0 = no response), retries included.</summary>
+    // HTTP status of every attempt the transport made, retries included; 0 means no response.
     public IReadOnlyList<int> Attempts { get; init; } = [];
 
     public string? ExistingDocument { get; init; }
     public long? CurrentVersion { get; init; }
+
+    public string? Location { get; init; }
 }
 
-/// <summary>Typed client for the SAP purchase requisition service. Translates HTTP outcomes into <see cref="SapCallStatus"/>.</summary>
 public sealed class SapClient(HttpClient http)
 {
     private const string EntitySet = "A_PurchaseRequisitionHeader";
@@ -71,7 +72,6 @@ public sealed class SapClient(HttpClient http)
         return SendAsync<object>(request, isWrite: true, ct);
     }
 
-    /// <summary>One page of the change feed; pass the returned next link to continue.</summary>
     public async Task<SapCall<(IReadOnlyList<SapRequisitionDto> Items, string? NextLink)>> GetChangesAsync(DateTime? since, string? nextLink, int top, CancellationToken ct)
     {
         var url = nextLink ?? $"{EntitySet}?$top={top}" +
@@ -105,13 +105,14 @@ public sealed class SapClient(HttpClient http)
                 var outcome = response.StatusCode == HttpStatusCode.Created
                     ? (replayed ? SapCallStatus.Replayed : SapCallStatus.Created)
                     : SapCallStatus.Ok;
-                return new SapCall<T>(outcome, value, etag, HttpStatus: status);
+                return new SapCall<T>(outcome, value, etag, HttpStatus: status) { Location = response.Headers.Location?.ToString() };
             }
 
             var (code, message, inner) = await ReadErrorAsync(response, ct);
             var mapped = response.StatusCode switch
             {
                 HttpStatusCode.NotFound => SapCallStatus.NotFound,
+                HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => SapCallStatus.Unauthorized,
                 HttpStatusCode.PreconditionFailed => SapCallStatus.PreconditionFailed,
                 HttpStatusCode.Conflict when code == "IDEMPOTENCY/IN_PROGRESS" => SapCallStatus.InProgress,
                 HttpStatusCode.Conflict when code == "DUPLICATE_REFERENCE" => SapCallStatus.Duplicate,
@@ -133,7 +134,7 @@ public sealed class SapClient(HttpClient http)
         }
         catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
         {
-            // No response. For a read nothing changed; for a write we cannot know.
+            // No response: for a read nothing changed, for a write we cannot know.
             return new SapCall<T>(isWrite ? SapCallStatus.Ambiguous : SapCallStatus.Transient, Error: $"{ex.GetType().Name}: {ex.Message}");
         }
         finally

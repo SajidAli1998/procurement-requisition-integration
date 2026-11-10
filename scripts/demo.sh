@@ -18,9 +18,9 @@ export Sync__Parallelism=8 Sync__Resilience__PermitsPerSecond=8 Sync__RetryPendi
 procsync() { dotnet src/Procurement.Sync.Worker/bin/Debug/net10.0/procsync.dll "$@" || true; }
 step() {
   echo
-  echo "════════════════════════════════════════════════════════════════════"
+  echo "--------------------------------------------------------------------"
   echo "  $1"
-  echo "════════════════════════════════════════════════════════════════════"
+  echo "--------------------------------------------------------------------"
   if $PAUSE; then read -r -p "  (press Enter) "; fi
 }
 token() { curl -s -X POST "$ASSISTANT/dev/token" "${JSON[@]}" -d "{\"user\":\"$1\"}" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4; }

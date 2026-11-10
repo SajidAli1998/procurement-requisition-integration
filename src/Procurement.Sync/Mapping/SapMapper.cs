@@ -5,16 +5,18 @@ namespace Procurement.Sync.Mapping;
 
 public static class SapMapper
 {
+    public const int TextLimit = 40;
+
     public static SapRequisitionInput ToSap(Requisition r) => new()
     {
-        PurReqnDescription = Truncate(r.Justification ?? r.Id, 40),
+        PurReqnDescription = Truncate(r.Justification ?? r.Id, TextLimit),
         ExternalReference = r.Id,
         ExternalVersion = r.Version,
         Items = r.Lines.Select(l => new SapItemInput
         {
             PurchaseRequisitionItem = l.LineNo.ToString("D5"),
             Material = l.MaterialCode,
-            PurchaseRequisitionItemText = Truncate(l.Description, 40),
+            PurchaseRequisitionItemText = Truncate(l.Description, TextLimit),
             MaterialGroup = l.MaterialGroup,
             RequestedQuantity = l.Quantity,
             BaseUnit = l.Uom,
@@ -27,10 +29,8 @@ public static class SapMapper
         }).ToList(),
     };
 
-    /// <summary>An amendment replaces the description, version and items; the external reference never changes.</summary>
     public static SapRequisitionInput ToPatch(Requisition r) => ToSap(r) with { ExternalReference = null };
 
-    /// <summary>SAP processing/release status codes → canonical status.</summary>
     public static ErpStatus ToErpStatus(SapRequisitionDto dto) => (dto.ProcessingStatus, dto.ReleaseStatus) switch
     {
         ("L", _) => ErpStatus.Closed,
@@ -41,10 +41,7 @@ public static class SapMapper
         _ => ErpStatus.Created,
     };
 
-    /// <summary>
-    /// True when SAP already holds exactly this content. Version numbers alone are not enough: our own
-    /// status write-back bumps the source version without changing what was requested.
-    /// </summary>
+    // Version numbers are not enough: our own status write-back bumps the source version without changing the content.
     public static bool SameContent(SapRequisitionDto sap, Requisition r)
     {
         var expected = ToSap(r);
@@ -65,7 +62,10 @@ public static class SapMapper
                 && p.First.DeliveryDate == p.Second.DeliveryDate);
     }
 
-    /// <summary>SAP accepts content changes only before release.</summary>
+    // Unknown codes are reported rather than guessed.
+    public static bool IsKnownStatus(SapRequisitionDto dto) =>
+        dto.ProcessingStatus is "N" or "B" or "L" or "" && dto.ReleaseStatus is "" or "01" or "02" or "08";
+
     public static bool IsAmendable(ErpStatus status) => status is ErpStatus.Created or ErpStatus.InRelease;
 
     public static string? PurchaseOrderOf(SapRequisitionDto dto) => dto.Items.Select(i => i.PurchaseOrder).FirstOrDefault(p => p is not null);

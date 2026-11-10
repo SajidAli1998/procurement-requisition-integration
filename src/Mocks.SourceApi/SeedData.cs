@@ -3,31 +3,24 @@ using System.Text.Json.Nodes;
 
 namespace Mocks.SourceApi;
 
-/// <param name="ListedVersion">
-/// When set, list pages still show this older version while GET by id returns the current one: a concurrent
-/// edit that the list endpoint's read replica has not caught up with yet.
-/// </param>
+// ListedVersion: list pages still show this older version while GET by id returns the current one,
+// like a read replica that has not caught up with a concurrent edit.
 public sealed record SeedRecord(string Key, long Version, DateTime UpdatedAt, JsonObject Body, long? ListedVersion = null);
 
-/// <summary>Which records were deliberately broken, so tests and the demo can check the report.</summary>
 public sealed record SeedManifestEntry(string Key, string Status, string? Defect);
 
 public sealed record SeedResult(IReadOnlyList<SeedRecord> Records, IReadOnlyList<SeedManifestEntry> Manifest);
 
-/// <summary>
-/// Deterministic synthetic requisitions. The same seed always produces the same data set.
-/// All names, codes and e-mail addresses are fictitious.
-/// </summary>
+// All names, codes and e-mail addresses are fictitious.
 public static class SeedData
 {
-    /// <summary>Defects the integration must quarantine.</summary>
     public static readonly string[] Malformations =
     [
         "missing_lines", "negative_quantity", "unknown_currency", "unknown_uom", "past_needed_by",
         "quantity_not_number", "total_mismatch", "missing_requester", "invalid_date", "missing_id",
     ];
 
-    /// <summary>Valid in the source but rejected by SAP (plant not assigned to company code).</summary>
+    // Valid in the source, but SAP rejects it: the plant is not assigned to the company code.
     public const string SapRejectDefect = "plant_company_mismatch";
 
     private sealed record Material(string Code, string Description, string Group, string Uom, decimal MinPrice, decimal MaxPrice);
@@ -98,7 +91,7 @@ public static class SeedData
                 });
             }
 
-            // Spread history over the last 30 days; add i ms so ordering is unambiguous.
+            // The extra i milliseconds keep the ordering unambiguous.
             var updatedAt = nowUtc.AddDays(-30).AddMinutes(random.Next(0, 30 * 24 * 60)).AddMilliseconds(i);
             var body = new JsonObject
             {

@@ -2,18 +2,13 @@ using Procurement.Contracts;
 
 namespace Procurement.Sync.Store;
 
-/// <summary>Per-requisition integration state. See docs/architecture.md for the state machine.</summary>
 public enum RecordState
 {
-    /// <summary>Seen in the source but not (yet) eligible: not approved.</summary>
     Ignored,
-    /// <summary>Validated and staged in the outbox, waiting to be sent.</summary>
     Queued,
-    /// <summary>A create/amend request is in flight.</summary>
     Sending,
     /// <summary>The request may or may not have reached SAP; resolved by lookup before any resend.</summary>
     InDoubt,
-    /// <summary>Transient failure; will be retried after <see cref="RequisitionRecord.NextAttemptAt"/>.</summary>
     RetryPending,
     Synced,
     Quarantined,
@@ -32,13 +27,12 @@ public sealed class RequisitionRecord
 
     public string? SapNumber { get; set; }
     public string? SapETag { get; set; }
-    /// <summary>Source version whose content SAP currently holds.</summary>
+    // The source version whose content SAP currently holds.
     public long? SyncedSourceVersion { get; set; }
 
     public ErpStatus? ErpStatus { get; set; }
     public DateTime? ErpStatusAt { get; set; }
     public string? PurchaseOrder { get; set; }
-    /// <summary>ERP status has changed and must still be written back to the source.</summary>
     public bool WritebackPending { get; set; }
 
     public int Attempts { get; set; }
@@ -48,13 +42,13 @@ public sealed class RequisitionRecord
     public DateTime FirstSeenAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
-    /// <summary>Optimistic concurrency token, bumped on every save.</summary>
+    // Concurrency token, bumped on every save.
     public long Revision { get; set; }
 }
 
 public enum OutboxKind { Create, Amend }
 
-/// <summary>Transactional outbox: written in the same transaction as the record's state change.</summary>
+// Written in the same transaction as the record's state change.
 public sealed class OutboxMessage
 {
     public long Id { get; set; }
@@ -74,15 +68,13 @@ public enum PipelineStage { Extract, Validate, Load, StatusSync, Writeback }
 public sealed class QuarantineEntry
 {
     public long Id { get; set; }
-    /// <summary>Source id, or a content-hash key when the record had no usable id.</summary>
+    // A content-hash key when the record had no usable id.
     public required string SourceKey { get; set; }
     public long? SourceVersion { get; set; }
     public PipelineStage Stage { get; set; }
     public QuarantineReason Reason { get; set; }
     public required string Summary { get; set; }
-    /// <summary>JSON array of individual problems.</summary>
     public string? Details { get; set; }
-    /// <summary>The payload exactly as received, for diagnosis and replay.</summary>
     public string? RawPayload { get; set; }
     public DateTime FirstSeenAt { get; set; }
     public DateTime LastSeenAt { get; set; }
@@ -112,13 +104,12 @@ public sealed class SyncRun
     public string? Message { get; set; }
 }
 
-/// <summary>Everything that happened to a record during a run; the reconciliation report is built from these.</summary>
 public enum RunEventKind
 {
     Extracted, Staged, Unchanged, Ignored, Quarantined, QuarantineResolved,
     Created, AlreadyInSap, Amended, InDoubt, InDoubtResolved, RetryScheduled, RetryExhausted,
     StatusChanged, StatusIgnored, WrittenBack, Conflict, SourceChangedAfterTransfer,
-    /// <summary>SAP refused a stale version; the requisition was re-read from the source before resending.</summary>
+    /// <summary>SAP refused a stale version, so the requisition was re-read from the source before resending.</summary>
     VersionRefreshed,
 }
 
@@ -129,7 +120,7 @@ public sealed class RunEvent
     public required string SourceKey { get; set; }
     public RunEventKind Kind { get; set; }
     public string? Detail { get; set; }
-    /// <summary>HTTP status of each SAP write attempt behind this event, comma-separated (0 = no response).</summary>
+    // Comma-separated HTTP status per SAP write attempt; 0 means no response.
     public string? SapResponses { get; set; }
     public DateTime At { get; set; }
 }
@@ -146,7 +137,6 @@ public sealed class StatusHistoryEntry
     public string? RunId { get; set; }
 }
 
-/// <summary>Single-runner lease: prevents overlapping scheduled runs from double-processing.</summary>
 public sealed class Lease
 {
     public required string Name { get; set; }

@@ -2,11 +2,8 @@ using System.Collections.Concurrent;
 
 namespace Procurement.AssistantApi.Infrastructure;
 
-/// <summary>
-/// Idempotency-Key handling for create (IETF draft semantics): same key and body → replay,
-/// different body → 422, still running → 409. Keys are scoped per user and expire after the retention period.
-/// In-memory here; a multi-instance deployment would use a shared store (e.g. SQL or Redis).
-/// </summary>
+// IETF Idempotency-Key semantics: the same key and body replays, a different body is 422, still running is 409.
+// In memory only; several instances would need a shared store such as SQL or Redis.
 public sealed class IdempotencyStore(TimeProvider time)
 {
     public sealed record StoredResponse(int StatusCode, string Body, string? Location, string? ETag);
@@ -41,6 +38,5 @@ public sealed class IdempotencyStore(TimeProvider time)
         if (_slots.TryGetValue(key, out var slot)) _slots[key] = slot with { Response = response };
     }
 
-    /// <summary>Nothing was created, so the caller may retry with the same key.</summary>
     public void Release(string key) => _slots.TryRemove(key, out _);
 }

@@ -1,15 +1,10 @@
 namespace Procurement.Sync.Http;
 
-/// <summary>
-/// Sits inside the resilience pipeline, so it sees every attempt, retries included, and records each one's
-/// HTTP status on the request. The reconciliation report uses this to say, per requisition, how many tries
-/// a create took and why (for example "created after two rate-limit responses").
-/// </summary>
+// Registered inside the resilience pipeline so it sees every attempt, retries included.
 public sealed class SapAttemptRecorder : DelegatingHandler
 {
     private static readonly HttpRequestOptionsKey<List<int>> Key = new("procsync.attempts");
 
-    /// <summary>Starts recording attempts for this request; the returned list fills in as the request runs.</summary>
     public static List<int> Track(HttpRequestMessage request)
     {
         var attempts = new List<int>();

@@ -8,10 +8,8 @@ using Procurement.Sync.Store;
 
 namespace Procurement.AssistantApi.Services;
 
-/// <summary>
-/// Builds the assistant-facing view of a requisition: approval state from the source system, plus transfer
-/// and ERP status from the integration. Explanations are plain language so the assistant can relay them as-is.
-/// </summary>
+// Approval state comes from the source system, transfer and ERP status from the integration store.
+// The wording is meant to be relayed to the user as it is.
 public sealed class StatusComposer(IDbContextFactory<SyncDbContext> dbFactory, ILogger<StatusComposer> logger)
 {
     private sealed record IntegrationState(RequisitionRecord? Record, List<StatusHistoryEntry> History, QuarantineEntry? OpenIssue);
@@ -45,8 +43,8 @@ public sealed class StatusComposer(IDbContextFactory<SyncDbContext> dbFactory, I
         }
         catch (DbException ex)
         {
-            // The integration store may not exist yet (no sync has run); fall back to source data only.
-            logger.LogDebug(ex, "Integration store unavailable");
+            // No sync has run yet, so there is no store; use the source data alone.
+            logger.StoreUnavailable(ex);
             return [];
         }
     }
@@ -117,4 +115,10 @@ public sealed class StatusComposer(IDbContextFactory<SyncDbContext> dbFactory, I
 
     private static DateTime? Date(JsonObject o, string name) =>
         DateTime.TryParse(Str(o, name), CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out var d) ? d : null;
+}
+
+internal static partial class StatusComposerLog
+{
+    [LoggerMessage(LogLevel.Debug, "Integration store unavailable")]
+    public static partial void StoreUnavailable(this ILogger logger, Exception exception);
 }

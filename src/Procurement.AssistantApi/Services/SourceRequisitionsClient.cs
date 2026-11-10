@@ -1,12 +1,10 @@
 using System.Net;
-using System.Net.Http.Json;
 using System.Text.Json.Nodes;
 
 namespace Procurement.AssistantApi.Services;
 
 public enum WithdrawOutcome { Withdrawn, NotFound, PreconditionFailed, NotAllowed }
 
-/// <summary>Client for the internal requisition system, where assistant requests are created and approved.</summary>
 public sealed class SourceRequisitionsClient(HttpClient http)
 {
     public async Task<(JsonObject Body, string ETag)> CreateAsync(JsonObject body, CancellationToken ct)
@@ -32,10 +30,6 @@ public sealed class SourceRequisitionsClient(HttpClient http)
             page["nextCursor"]?.GetValue<string>(), page["hasMore"]?.GetValue<bool>() == true);
     }
 
-    /// <summary>
-    /// Finds a requisition this user already created with the given idempotency key. Used before creating,
-    /// so a create whose response was lost is not repeated (same "look before you leap" rule as the SAP sync).
-    /// </summary>
     public async Task<(JsonObject Body, string ETag)?> FindByRequestKeyAsync(string requester, string key, CancellationToken ct)
     {
         string? cursor = null;

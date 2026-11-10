@@ -4,56 +4,55 @@ public sealed class SyncOptions
 {
     public const string Section = "Sync";
 
-    /// <summary>Base URL of the internal requisition API (must end with '/').</summary>
     public string SourceBaseUrl { get; set; } = "http://localhost:5101/";
-
-    /// <summary>Base URL of the SAP OData service (must end with '/').</summary>
     public string SapBaseUrl { get; set; } = "http://localhost:5102/sap/opu/odata/sap/API_PURCHASEREQ_PROCESS_SRV/";
 
-    /// <summary>Sent as X-Client-Id so downstream rate limits are applied per client.</summary>
+    // Sent as X-Client-Id so downstream rate limits apply per client.
     public string ClientId { get; set; } = "procsync";
 
     public int PageSize { get; set; } = 50;
-
-    /// <summary>How many requisitions are sent to SAP concurrently.</summary>
     public int Parallelism { get; set; } = 4;
 
-    /// <summary>Dispatch attempts (each with its own HTTP retries) before a record is quarantined as RetryExhausted.</summary>
+    // Each dispatch attempt has its own HTTP retries; after this many the record is quarantined as RetryExhausted.
     public int MaxDispatchAttempts { get; set; } = 5;
 
-    /// <summary>First wait before a RetryPending record is tried again; doubles per attempt.</summary>
+    // Doubles per attempt.
     public TimeSpan RetryPendingBaseDelay { get; set; } = TimeSpan.FromSeconds(30);
 
-    /// <summary>Wait before re-checking SAP for a request whose outcome is unknown.</summary>
     public TimeSpan InDoubtRecheckDelay { get; set; } = TimeSpan.FromSeconds(10);
-
     public TimeSpan LeaseDuration { get; set; } = TimeSpan.FromMinutes(15);
 
-    /// <summary>
-    /// Status polling re-reads this much before the last watermark, in case SAP timestamps collide.
-    /// Re-applying a status is harmless because statuses only move forward.
-    /// </summary>
+    // Catches an approval withdrawn while the item waited (e.g. SAP was down). Fresh reads need no recheck.
+    public ApprovalRecheck ApprovalRecheck { get; set; } = ApprovalRecheck.WhenStale;
+
+    public TimeSpan ApprovalRecheckAfter { get; set; } = TimeSpan.FromMinutes(10);
+
+    // A periodic read from the start finds records a lagging source index skipped. Null disables it.
+    public TimeSpan? FullScanInterval { get; set; } = TimeSpan.FromHours(24);
+
+    // SAP timestamps can collide. Re-applying a status is harmless because statuses only move forward.
     public TimeSpan StatusSyncOverlap { get; set; } = TimeSpan.FromSeconds(2);
 
-    /// <summary>Scan SAP during reconciliation to prove there are no duplicates or orphans.</summary>
     public bool VerifyAgainstSap { get; set; } = true;
-
-    /// <summary>Directory for reconciliation reports.</summary>
     public string ReportDirectory { get; set; } = "reports";
 
     public ResilienceSettings Resilience { get; set; } = new();
 }
 
-/// <summary>Settings for the standard resilience handler on each downstream HttpClient.</summary>
+public enum ApprovalRecheck { Never, WhenStale, Always }
+
 public sealed class ResilienceSettings
 {
     public int MaxRetryAttempts { get; set; } = 4;
+
+    // Safe when SAP honours Idempotency-Key or answers 503 only before processing; otherwise turn it off.
+    public bool TrustServiceUnavailable { get; set; } = true;
     public TimeSpan BaseDelay { get; set; } = TimeSpan.FromMilliseconds(500);
 
-    /// <summary>Upper bound on a server's Retry-After, so one response cannot stall the run.</summary>
+    // Caps a server's Retry-After so one response cannot stall the run.
     public TimeSpan MaxRetryAfter { get; set; } = TimeSpan.FromSeconds(30);
 
-    /// <summary>Multiplier for every retry wait. 1 in production; tests shrink it to run instantly.</summary>
+    // Tests shrink every retry wait with this.
     public double DelayScale { get; set; } = 1.0;
 
     public TimeSpan AttemptTimeout { get; set; } = TimeSpan.FromSeconds(10);
@@ -64,6 +63,6 @@ public sealed class ResilienceSettings
     public TimeSpan BreakerSamplingDuration { get; set; } = TimeSpan.FromSeconds(30);
     public TimeSpan BreakerBreakDuration { get; set; } = TimeSpan.FromSeconds(15);
 
-    /// <summary>Client-side token bucket; 0 disables it. Keeps us under the server limit instead of bouncing off it.</summary>
+    // Client-side token bucket that keeps us under the server limit instead of bouncing off it. 0 disables it.
     public int PermitsPerSecond { get; set; } = 15;
 }

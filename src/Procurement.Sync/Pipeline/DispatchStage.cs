@@ -10,29 +10,22 @@ using Procurement.Sync.Validation;
 
 namespace Procurement.Sync.Pipeline;
 
-public sealed record DispatchSummary(int Attempted, bool CircuitOpen);
+public sealed record DispatchSummary(int Attempted, bool CircuitOpen, string? StopReason = null);
 
-/// <summary>
-/// Drains the outbox into SAP. Duplicate protection, in order:
-/// 1) local mapping (a record with a SAP number is amended, never created again);
-/// 2) a deterministic Idempotency-Key per (requisition, version);
-/// 3) a lookup by ExternalReference before every create, which also works against a real SAP that ignores keys.
-/// If SAP still answers a create with "duplicate", the existing document is adopted; if it answers "version
-/// conflict", the requisition is re-read from the source and sent once more.
-/// </summary>
+// Three layers stop duplicates: the local SAP number (amend, never create again), a deterministic Idempotency-Key,
+// and a lookup by ExternalReference before every create, which also works against a SAP that ignores keys.
 public sealed class DispatchStage(
     IDbContextFactory<SyncDbContext> dbFactory,
     SapClient sap,
     SourceClient source,
     RequisitionValidator validator,
+    SyncControl control,
     IOptions<SyncOptions> options,
     TimeProvider time,
     ILogger<DispatchStage> logger)
 {
     private enum Flow { Continue, Stop }
 
-    /// <param name="Responses">HTTP status of every SAP write attempt for this requisition in this run.</param>
-    /// <param name="Refreshed">The requisition was already re-read from the source after a version conflict.</param>
     private sealed record Item(SyncDbContext Db, RunContext Run, RequisitionRecord Record, OutboxMessage Message, Requisition Requisition,
         bool WasInDoubt, List<int> Responses, bool Refreshed = false);
 
@@ -50,7 +43,6 @@ public sealed class DispatchStage(
                 .Where(m => m.NextAttemptAt is null || m.NextAttemptAt <= now)
                 .ToList();
 
-            // Only the newest version of each requisition is sent; older staged versions are superseded.
             var latest = pending.GroupBy(m => m.SourceId)
                 .Select(g => g.OrderByDescending(m => m.SourceVersion).ThenByDescending(m => m.Id).First())
                 .ToList();
@@ -67,13 +59,23 @@ public sealed class DispatchStage(
         await Parallel.ForEachAsync(due, new ParallelOptions { MaxDegreeOfParallelism = Options.Parallelism, CancellationToken = ct },
             async (id, token) =>
             {
+                await control.WaitWhilePausedAsync(token);
                 // After the breaker opens, leave the rest queued rather than cancelling requests already in flight.
                 if (Volatile.Read(ref stop) == 1) return;
                 if (await ProcessAsync(id, run, token) == Flow.Stop) Interlocked.Exchange(ref stop, 1);
             });
 
-        if (stop == 1) logger.LogWarning("SAP circuit breaker is open; remaining outbox messages stay queued");
-        return new DispatchSummary(due.Count, stop == 1);
+        if (stop == 1) logger.DispatchStopped();
+        string? reason = null;
+        if (stop == 1)
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            var credentials = await db.RunEvents.AnyAsync(e => e.RunId == run.RunId && e.Detail != null && e.Detail.StartsWith("SAP refused the integration's credentials"), ct);
+            reason = credentials
+                ? "SAP refused the integration's credentials (401/403); nothing was quarantined and the queue is kept for the next run"
+                : "SAP circuit breaker opened; remaining records stay queued for the next run";
+        }
+        return new DispatchSummary(due.Count, stop == 1, reason);
     }
 
     private async Task<Flow> ProcessAsync(long messageId, RunContext run, CancellationToken ct)
@@ -83,7 +85,40 @@ public sealed class DispatchStage(
         if (message is null || message.ProcessedAt is not null) return Flow.Continue;
         var record = await db.Requisitions.FindAsync([message.SourceId], ct);
         if (record is null) return Flow.Continue;
-        var requisition = JsonSerializer.Deserialize<Requisition>(message.Payload, ExtractStage.PayloadJson)!;
+
+        // The source said "not approved" more recently than it said "send".
+        if (record.State is RecordState.Ignored or RecordState.Dismissed && record.SapNumber is null)
+        {
+            message.ProcessedAt = Now;
+            message.LastError = $"Not sent: requisition is {record.SourceStatus ?? record.State.ToString()}";
+            Ledger.Event(db, run, record.SourceId, RunEventKind.Ignored, $"Staged v{message.SourceVersion} withdrawn: requisition is {record.SourceStatus ?? record.State.ToString()}", Now);
+            await db.SaveChangesAsync(ct);
+            return Flow.Continue;
+        }
+
+        Requisition? requisition;
+        try
+        {
+            requisition = JsonSerializer.Deserialize<Requisition>(message.Payload, ExtractStage.PayloadJson);
+        }
+        catch (JsonException ex)
+        {
+            requisition = null;
+            logger.PayloadUnreadable(ex, message.SourceId);
+        }
+        if (requisition is null)
+        {
+            // A poison message must not block the queue: park it, keep the payload, and let a replay re-read the source.
+            var now = Now;
+            await Ledger.QuarantineAsync(db, run, record.SourceId, message.SourceVersion, PipelineStage.Load, QuarantineReason.SchemaInvalid,
+                "The staged payload in the integration database is unreadable; nothing was sent. Replay re-reads the requisition from the source.",
+                message.Payload, now, ct);
+            if (record.SapNumber is null) record.State = RecordState.Quarantined;
+            message.ProcessedAt = now;
+            message.LastError = "Unreadable payload";
+            await db.SaveChangesAsync(ct);
+            return Flow.Continue;
+        }
 
         // Persist "Sending" before calling SAP: if the process dies mid-call, the next run treats it as in doubt.
         var wasInDoubt = record.State == RecordState.InDoubt;
@@ -94,7 +129,6 @@ public sealed class DispatchStage(
         await db.SaveChangesAsync(ct);
 
         var item = new Item(db, run, record, message, requisition, wasInDoubt, []);
-        // Layer 1: a requisition already linked to a SAP number is only ever amended.
         var flow = record.SapNumber is null ? await CreateAsync(item, ct) : await AmendAsync(item, null, ct);
         await db.SaveChangesAsync(ct);
         return flow;
@@ -104,14 +138,32 @@ public sealed class DispatchStage(
     {
         var req = item.Requisition;
 
-        // Layer 3: look before creating. Cheap insurance against lost responses and lost local state.
+        // Look before creating: cheap insurance against lost responses and lost local state.
         var lookup = await sap.FindByExternalReferenceAsync(req.Id, ct);
         if (!lookup.IsSuccess) return await DeferAsync(item, lookup.Status, $"lookup failed: {lookup.Error}", ct);
         if (lookup.Value!.Count > 0) return await AdoptExistingAsync(item, lookup.Value, ct);
 
-        // Layer 2: deterministic Idempotency-Key, so a retried create is replayed, not duplicated.
+        // A requisition that waited in the queue (for example while SAP was down) may have lost its approval meanwhile.
+        if (!item.Refreshed && NeedsApprovalRecheck(item))
+        {
+            var (current, stopped) = await RecheckApprovalAsync(item, ct);
+            if (current is null) return stopped;
+            if (current.Version != req.Version) return await CreateAsync(item with { Requisition = current, Refreshed = true }, ct);
+        }
+
         var created = await sap.CreateAsync(SapMapper.ToSap(req), Fingerprints.CreateKey(req.Id, req.Version), ct);
         item.Responses.AddRange(created.Attempts);
+        // A success status alone is not proof: without a document for this reference the outcome is unknown.
+        if (created.IsSuccess && !IsVerifiable(created.Value, req.Id, created.Location))
+        {
+            created = created with
+            {
+                Status = SapCallStatus.Ambiguous,
+                Error = created.Value is null || string.IsNullOrWhiteSpace(created.Value.PurchaseRequisition)
+                    ? $"SAP answered {created.HttpStatus} without a document number"
+                    : $"SAP answered {created.HttpStatus} with document {created.Value.PurchaseRequisition} for reference '{created.Value.ExternalReference}', not {req.Id}",
+            };
+        }
         switch (created.Status)
         {
             case SapCallStatus.Created:
@@ -142,11 +194,12 @@ public sealed class DispatchStage(
 
             case SapCallStatus.Ambiguous:
                 var recheck = await sap.FindByExternalReferenceAsync(req.Id, ct);
-                if (recheck.IsSuccess && recheck.Value!.Count > 0)
+                if (recheck.IsSuccess && recheck.Value!.Count > 1) return await AdoptExistingAsync(item with { WasInDoubt = true }, recheck.Value, ct);
+                if (recheck.IsSuccess && recheck.Value!.Count == 1)
                 {
                     Ledger.Event(item.Db, item.Run, req.Id, RunEventKind.InDoubt, created.Error, Now);
-                    var found = recheck.Value.OrderBy(p => p.PurchaseRequisition, StringComparer.Ordinal).First();
-                    Adopt(item, found, found.ETag, RunEventKind.InDoubtResolved, $"Response was lost; SAP PR {found.PurchaseRequisition} found on re-check");
+                    var found = recheck.Value[0];
+                    Adopt(item, found, found.ETag, RunEventKind.InDoubtResolved, $"Outcome was unknown ({created.Error}); SAP PR {found.PurchaseRequisition} found on re-check");
                     return Flow.Continue;
                 }
                 // Not visible (yet). Wait before checking again rather than risk a second create.
@@ -161,24 +214,24 @@ public sealed class DispatchStage(
         }
     }
 
-    /// <summary>SAP answered the create with 409 "already exists": link to that document instead of creating another.</summary>
     private async Task<Flow> AdoptReportedDuplicateAsync(Item item, SapCall<SapRequisitionDto> created, CancellationToken ct)
     {
         if (created.ExistingDocument is { } number)
         {
             var existing = await sap.GetAsync(number, ct);
-            if (existing.IsSuccess)
+            // Only a document that really is this requisition may be linked, whatever the error message says.
+            if (existing.IsSuccess && existing.Value!.ExternalReference == item.Requisition.Id)
                 return await AdoptExistingAsync(item, [existing.Value! with { ETag = existing.ETag ?? existing.Value!.ETag }], ct);
+            if (existing.IsSuccess)
+                Ledger.Event(item.Db, item.Run, item.Record.SourceId, RunEventKind.Conflict,
+                    $"SAP said {number} already exists for this requisition, but {number} belongs to '{existing.Value!.ExternalReference}'; not linked", Now);
         }
         var lookup = await sap.FindByExternalReferenceAsync(item.Requisition.Id, ct);
         if (lookup.IsSuccess && lookup.Value!.Count > 0) return await AdoptExistingAsync(item, lookup.Value, ct);
         return await DeferAsync(item, SapCallStatus.Transient, $"SAP reported a duplicate that could not be read back: {created.Error}", ct);
     }
 
-    /// <summary>
-    /// After a version conflict: re-read the requisition from the source (the authority on content), validate it again
-    /// and update local state. Returns the newer requisition, or null with the flow to return when it cannot be sent.
-    /// </summary>
+    // Returns null, with the flow to return, when the re-read requisition cannot be sent.
     private async Task<(Requisition? Refreshed, Flow Stopped)> RefreshFromSourceAsync(Item item, long? sapVersion, CancellationToken ct)
     {
         var record = item.Record;
@@ -239,14 +292,92 @@ public sealed class DispatchStage(
         return (requisition, Flow.Continue);
     }
 
+    private static bool IsVerifiable(SapRequisitionDto? pr, string reference, string? location) =>
+        pr is not null && !string.IsNullOrWhiteSpace(pr.PurchaseRequisition)
+        && string.Equals(pr.ExternalReference, reference, StringComparison.Ordinal)
+        // The body and the Location header must name the same document.
+        && (location is null || location.Contains($"('{pr.PurchaseRequisition}')", StringComparison.Ordinal));
+
+    private bool NeedsApprovalRecheck(Item item) => Options.ApprovalRecheck switch
+    {
+        ApprovalRecheck.Always => true,
+        ApprovalRecheck.WhenStale => Now - item.Message.CreatedAt >= Options.ApprovalRecheckAfter,
+        _ => false,
+    };
+
+    // Returns null, with the flow to return, when it must not be sent: no longer approved, gone, or now invalid.
+    private async Task<(Requisition? Current, Flow Stopped)> RecheckApprovalAsync(Item item, CancellationToken ct)
+    {
+        var record = item.Record;
+        (JsonElement Body, string ETag)? fetched;
+        try
+        {
+            fetched = await source.GetAsync(record.SourceId, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or Polly.ExecutionRejectedException
+                                   || (ex is OperationCanceledException && !ct.IsCancellationRequested))
+        {
+            // Without a confirmed approval nothing is sent; try again later.
+            return (null, await DeferAsync(item, SapCallStatus.Transient, $"approval re-check failed: {ex.Message}", ct));
+        }
+
+        var now = Now;
+        if (fetched is null)
+        {
+            record.State = RecordState.Ignored;
+            item.Message.ProcessedAt = now;
+            item.Message.LastError = "Deleted in the source before transfer";
+            Ledger.Event(item.Db, item.Run, record.SourceId, RunEventKind.Ignored, "Deleted in the source before transfer; not sent to SAP", now);
+            return (null, Flow.Continue);
+        }
+
+        var envelope = SourceRecordParser.ReadEnvelope(fetched.Value.Body);
+        if (envelope.Status != "Approved")
+        {
+            record.State = RecordState.Ignored;
+            record.SourceStatus = envelope.Status;
+            record.SourceVersion = Math.Max(record.SourceVersion, envelope.Version);
+            item.Message.ProcessedAt = now;
+            item.Message.LastError = $"No longer approved ({envelope.Status})";
+            Ledger.Event(item.Db, item.Run, record.SourceId, RunEventKind.Ignored,
+                $"Approval withdrawn before transfer (now {envelope.Status ?? "(none)"}); not sent to SAP", now);
+            return (null, Flow.Continue);
+        }
+
+        if (envelope.Version == item.Requisition.Version) return (item.Requisition, Flow.Continue);
+
+        var (requisition, problems) = SourceRecordParser.Parse(fetched.Value.Body, envelope);
+        if (requisition is not null) problems = validator.Check(requisition);
+        if (problems.Count > 0)
+        {
+            await Ledger.QuarantineAsync(item.Db, item.Run, record.SourceId, envelope.Version, PipelineStage.Validate, problems, envelope.Raw, now, ct, item.Responses);
+            record.State = RecordState.Quarantined;
+            record.LastError = problems[0].Message;
+            item.Message.ProcessedAt = now;
+            item.Message.LastError = problems[0].Message;
+            return (null, Flow.Continue);
+        }
+
+        record.SourceVersion = envelope.Version;
+        record.ContentHash = Fingerprints.ContentHash(requisition!);
+        record.CanonicalJson = JsonSerializer.Serialize(requisition, ExtractStage.PayloadJson);
+        Ledger.Event(item.Db, item.Run, record.SourceId, RunEventKind.Staged, $"Create v{envelope.Version} (newer version found on approval re-check)", now);
+        return (requisition, Flow.Continue);
+    }
+
     private async Task<Flow> AdoptExistingAsync(Item item, IReadOnlyList<SapRequisitionDto> existing, CancellationToken ct)
     {
         var ordered = existing.OrderBy(p => p.PurchaseRequisition, StringComparer.Ordinal).ToList();
         var pr = ordered[0];
         if (ordered.Count > 1)
         {
+            // Linking to any one of them would be a guess, and creating another would add a third: a person decides.
+            var numbers = string.Join(", ", ordered.Select(p => p.PurchaseRequisition));
             Ledger.Event(item.Db, item.Run, item.Record.SourceId, RunEventKind.Conflict,
-                $"SAP already holds {ordered.Count} requisitions for this reference ({string.Join(", ", ordered.Select(p => p.PurchaseRequisition))}); using {pr.PurchaseRequisition}", Now);
+                $"SAP already holds {ordered.Count} requisitions for this reference ({numbers}); none linked", Now);
+            await QuarantineAsync(item, QuarantineReason.AmbiguousSapMatch,
+                $"SAP holds {ordered.Count} requisitions for {item.Record.SourceId} ({numbers}); not linked to any of them and nothing created", ct);
+            return Flow.Continue;
         }
 
         if (pr.ExternalVersion >= item.Requisition.Version || SapMapper.SameContent(pr, item.Requisition))
@@ -256,7 +387,6 @@ public sealed class DispatchStage(
             return Flow.Continue;
         }
 
-        // SAP has an older version of this requisition: link to it and amend instead of creating.
         item.Record.SapNumber = pr.PurchaseRequisition;
         item.Record.SyncedSourceVersion = pr.ExternalVersion;
         return await AmendAsync(item, pr, ct);
@@ -278,6 +408,21 @@ public sealed class DispatchStage(
                 }
                 if (!fetched.IsSuccess) return await DeferAsync(item, fetched.Status, fetched.Error, ct);
                 current = fetched.Value! with { ETag = fetched.ETag ?? fetched.Value!.ETag };
+            }
+
+            if (!string.Equals(current.ExternalReference, record.SourceId, StringComparison.Ordinal))
+            {
+                Ledger.Event(item.Db, item.Run, record.SourceId, RunEventKind.Conflict,
+                    $"Local link points at SAP PR {current.PurchaseRequisition}, which belongs to '{current.ExternalReference}'", Now);
+                await QuarantineAsync(item, QuarantineReason.MappingIntegrityViolation,
+                    $"Linked SAP PR {current.PurchaseRequisition} belongs to '{current.ExternalReference}', not {record.SourceId}; nothing was changed in SAP and the link was removed", ct);
+                // The link is wrong, so it must not keep counting as synchronised; a replay looks the requisition up afresh.
+                record.SapNumber = null;
+                record.SapETag = null;
+                record.SyncedSourceVersion = null;
+                record.ErpStatus = null;
+                record.State = RecordState.Quarantined;
+                return Flow.Continue;
             }
 
             if (current.ExternalVersion >= req.Version || SapMapper.SameContent(current, req))
@@ -364,6 +509,16 @@ public sealed class DispatchStage(
         var record = item.Record;
         var now = Now;
         var keepState = item.WasInDoubt ? RecordState.InDoubt : RecordState.RetryPending;
+
+        if (status == SapCallStatus.Unauthorized)
+        {
+            record.Attempts--;
+            item.Message.Attempts--;
+            record.State = keepState;
+            record.LastError = $"SAP refused the integration's credentials: {error}";
+            Ledger.Event(item.Db, item.Run, record.SourceId, RunEventKind.RetryScheduled, "SAP refused the integration's credentials (401/403)", now);
+            return Flow.Stop;
+        }
 
         if (status == SapCallStatus.CircuitOpen)
         {

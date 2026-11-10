@@ -7,7 +7,6 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -28,8 +27,9 @@ builder.Services.AddSingleton(auth);
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IdempotencyStore>();
+builder.Services.AddSingleton<ConfirmationLedger>();
 builder.Services.AddSingleton<RequestValidator>();
-// The catalogue follows the data set the source system serves: the client's workbook, or our generated one.
+// The catalogue has to match whichever data set the source system serves.
 builder.Services.AddSingleton(builder.Configuration.GetValue("Dataset:Source", "Workbook") == "Generated"
     ? ReferenceCatalogue.Generated()
     : ReferenceCatalogue.FromWorkbook(DataPack.Load(builder.Configuration["Dataset:WorkbookPath"])));
@@ -38,7 +38,7 @@ builder.Services.AddSyncStore(builder.Configuration);
 builder.Services.AddTransient<StatusComposer>();
 builder.Services.AddHttpClient<SourceRequisitionsClient>((sp, http) =>
         http.BaseAddress = new Uri(sp.GetRequiredService<IOptions<AssistantOptions>>().Value.SourceBaseUrl))
-    // Never blindly repeat a create: an unknown outcome is resolved by looking the request up instead.
+    // Never blindly repeat a create. An unknown outcome is resolved by looking the request up instead.
     .AddStandardResilienceHandler(o => o.Retry.DisableForUnsafeHttpMethods());
 
 builder.Services.AddProblemDetails();
@@ -62,6 +62,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
     o.Events = new JwtBearerEvents
     {
+        // Every action is taken for a person, so a token without a subject (a client-credentials token, say)
+        // is refused rather than reaching endpoints with no user to scope the data to.
+        OnTokenValidated = context =>
+        {
+            if (string.IsNullOrWhiteSpace(context.Principal?.FindFirst("sub")?.Value)) context.Fail("The token has no subject (sub)");
+            return Task.CompletedTask;
+        },
         OnChallenge = async context =>
         {
             context.HandleResponse();
@@ -116,12 +123,12 @@ var viewJson = new JsonSerializerOptions(JsonSerializerDefaults.Web) { Converter
 
 var v1 = app.MapGroup("/v1").RequireRateLimiting("per-user");
 
-v1.MapPost("/requisition-requests:validate", async (HttpRequest request, ClaimsPrincipal user, RequestValidator validator, AuthOptions auth) =>
+v1.MapPost("/requisition-requests:validate", async (HttpRequest request, ClaimsPrincipal user, RequestValidator validator, AuthOptions auth, TimeProvider time) =>
     {
         var (body, _, error) = await ReadStrictAsync<CreateRequisitionRequest>(request);
         if (error is not null) return error;
         var result = validator.Validate(body!);
-        return Results.Ok(result.Valid ? result with { ConfirmationToken = Confirmations.Issue(auth, user.FindFirstValue("sub")!, body!) } : result);
+        return Results.Ok(result.Valid ? result with { ConfirmationToken = Confirmations.Issue(auth, user.FindFirstValue("sub")!, body!, time.GetUtcNow()) } : result);
     })
     .RequireAuthorization(Scopes.Draft)
     .WithMetadata(new AgentToolHints("validateRequisitionRequest", ReadOnly: true, Idempotent: true, Destructive: false, Scopes.Draft))
@@ -133,7 +140,7 @@ v1.MapPost("/requisition-requests:validate", async (HttpRequest request, ClaimsP
 
 v1.MapPost("/requisition-requests", async (HttpRequest request, HttpResponse response, ClaimsPrincipal user, RequestValidator validator,
         IdempotencyStore idempotency, SourceRequisitionsClient source, StatusComposer composer, ReferenceCatalogue catalogue, AuthOptions auth,
-        IOptions<AssistantOptions> options, CancellationToken ct) =>
+        IOptions<AssistantOptions> options, ConfirmationLedger confirmations, TimeProvider time, CancellationToken ct) =>
     {
         var key = request.Headers["Idempotency-Key"].ToString();
         if (string.IsNullOrWhiteSpace(key) || key.Length > 100)
@@ -144,7 +151,7 @@ v1.MapPost("/requisition-requests", async (HttpRequest request, HttpResponse res
         if (error is not null) return error;
 
         var requester = user.FindFirstValue("sub")!;
-        // An invalid request is reported as such first: the agent can fix it without bothering the user.
+        // Report an invalid request first, since the agent can fix it without bothering the user.
         var validation = validator.Validate(body!);
         if (!validation.Valid)
             return Problems.Create(422, ErrorCodes.ValidationFailed, "The request has invalid fields", invalidFields: validation.Issues,
@@ -154,9 +161,15 @@ v1.MapPost("/requisition-requests", async (HttpRequest request, HttpResponse res
         if (string.IsNullOrWhiteSpace(confirmation))
             return Problems.Create(428, ErrorCodes.ConfirmationRequired, "The user has not confirmed this request",
                 suggestedAction: $"Call validateRequisitionRequest, show the user confirmationSummary, and only if they agree send confirmationToken as the {Confirmations.Header} header.");
-        if (!Confirmations.Matches(auth, requester, body!, confirmation))
-            return Problems.Create(422, ErrorCodes.ConfirmationMismatch, "This request differs from the one the user confirmed",
-                suggestedAction: "Validate the request as it is now, show the user the new confirmationSummary and ask again. Do not change a request after the user confirmed it.");
+        switch (Confirmations.Check(auth, requester, body!, confirmation, time.GetUtcNow(), options.Value.ConfirmationLifetime))
+        {
+            case ConfirmationCheck.Mismatch:
+                return Problems.Create(422, ErrorCodes.ConfirmationMismatch, "This request differs from the one the user confirmed",
+                    suggestedAction: "Validate the request as it is now, show the user the new confirmationSummary and ask again. Do not change a request after the user confirmed it.");
+            case ConfirmationCheck.Expired:
+                return Problems.Create(422, ErrorCodes.ConfirmationExpired, "The user's confirmation has expired",
+                    suggestedAction: "Validate the request again, show the user the confirmationSummary and ask again before creating it.");
+        }
 
         var slot = $"{requester}:{key}";
         var (claim, stored) = idempotency.TryClaim(slot, Fingerprint(raw), options.Value.IdempotencyRetention);
@@ -175,9 +188,17 @@ v1.MapPost("/requisition-requests", async (HttpRequest request, HttpResponse res
                     retryable: true, retryAfterSeconds: 2, suggestedAction: "Retry the same request with the same key in a few seconds.");
         }
 
+        // One confirmation raises one requisition, so the same token under another key is refused.
+        if (!confirmations.TrySpend(confirmation, slot))
+        {
+            idempotency.Release(slot);
+            return Problems.Create(409, ErrorCodes.ConfirmationAlreadyUsed, "This confirmation was already used to raise a requisition",
+                suggestedAction: "If the user wants another requisition, validate it and ask them to confirm it separately.");
+        }
+
         try
         {
-            // Look before creating: if an earlier attempt with this key reached the source but its response was lost, reuse it.
+            // An earlier attempt with this key may have reached the source and lost its response, so look first.
             var created = await source.FindByRequestKeyAsync(requester, key, ct)
                 ?? await source.CreateAsync(ToSourceRequisition(catalogue, body!, requester, key, validation), ct);
             var view = await composer.ComposeAsync(created.Body, ct);
@@ -192,6 +213,7 @@ v1.MapPost("/requisition-requests", async (HttpRequest request, HttpResponse res
                                    && !ct.IsCancellationRequested)
         {
             idempotency.Release(slot);
+            confirmations.Refund(confirmation, slot);
             return Problems.Create(503, ErrorCodes.UpstreamUnavailable, "The requisition system is temporarily unavailable", retryable: true,
                 retryAfterSeconds: 5, suggestedAction: "Retry the same request with the same Idempotency-Key; it will not create a duplicate.");
         }
@@ -317,8 +339,16 @@ static IResult WithEtag(HttpResponse response, string? etag, IResult result)
 
 async Task<(T? Body, string Raw, IResult? Error)> ReadStrictAsync<T>(HttpRequest request) where T : class
 {
+    // A draft is a few hundred bytes, so anything far larger is refused before it is buffered or parsed.
+    const int maxBody = 64 * 1024;
+    IResult TooLarge() => Problems.Create(413, ErrorCodes.PayloadTooLarge, $"Request body is larger than {maxBody / 1024} KB",
+        suggestedAction: "Send only the documented fields; a requisition request is small.");
+    if (request.ContentLength > maxBody) return (null, "", TooLarge());
     using var reader = new StreamReader(request.Body, Encoding.UTF8);
-    var raw = await reader.ReadToEndAsync(request.HttpContext.RequestAborted);
+    var buffer = new char[maxBody + 1];
+    var read = await reader.ReadBlockAsync(buffer, request.HttpContext.RequestAborted);
+    if (read > maxBody) return (null, "", TooLarge());
+    var raw = new string(buffer, 0, read);
     try
     {
         var body = JsonSerializer.Deserialize<T>(raw, strictJson);
@@ -373,6 +403,6 @@ namespace Procurement.AssistantApi
 {
     public sealed record DevTokenRequest(string User, string[]? Scopes);
 
-    /// <summary>Marker type for WebApplicationFactory in tests.</summary>
+    // Entry point type for WebApplicationFactory in tests.
     public sealed class AssistantApiMarker;
 }

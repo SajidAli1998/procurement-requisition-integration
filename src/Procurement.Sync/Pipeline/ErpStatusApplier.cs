@@ -5,10 +5,7 @@ namespace Procurement.Sync.Pipeline;
 
 internal static class ErpStatusApplier
 {
-    /// <summary>
-    /// Applies an ERP status if it moves the record forward; stale or duplicate statuses are ignored.
-    /// Returns true when the status changed (and therefore needs writing back to the source).
-    /// </summary>
+    /// <summary>Returns true when the status moved forward and so needs writing back to the source.</summary>
     public static bool Apply(SyncDbContext db, RunContext run, RequisitionRecord record, ErpStatus status,
         DateTime changedAt, string? purchaseOrder, DateTime now)
     {

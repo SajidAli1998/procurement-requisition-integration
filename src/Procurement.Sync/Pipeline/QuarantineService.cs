@@ -6,7 +6,6 @@ namespace Procurement.Sync.Pipeline;
 
 public sealed record RequisitionStatusView(RequisitionRecord Record, IReadOnlyList<StatusHistoryEntry> History, IReadOnlyList<QuarantineEntry> Quarantine);
 
-/// <summary>Operator queries and actions on quarantined records.</summary>
 public sealed class QuarantineService(IDbContextFactory<SyncDbContext> dbFactory, TimeProvider time)
 {
     public async Task<List<QuarantineEntry>> ListAsync(QuarantineReason? reason, bool includeResolved, CancellationToken ct)
@@ -29,7 +28,7 @@ public sealed class QuarantineService(IDbContextFactory<SyncDbContext> dbFactory
         return new RequisitionStatusView(record, history, quarantine);
     }
 
-    /// <summary>Closes the open entry after the problem was handled outside the integration (e.g. fixed directly in SAP).</summary>
+    // For problems handled outside the integration, for example fixed directly in SAP.
     public async Task<bool> ResolveAsync(string key, string note, CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);

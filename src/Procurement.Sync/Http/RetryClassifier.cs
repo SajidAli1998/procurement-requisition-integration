@@ -4,20 +4,20 @@ using Polly.Timeout;
 
 namespace Procurement.Sync.Http;
 
-/// <summary>
-/// Decides whether the transport may retry a request on its own.
-/// The rule: retry only when the server certainly did nothing, or when doing it twice is harmless.
-/// </summary>
+// The transport retries on its own only when the server certainly did nothing, or when doing it twice is harmless.
 public static class RetryClassifier
 {
-    public static bool ShouldRetry(Outcome<HttpResponseMessage> outcome, HttpRequestMessage? request)
+    // trustServiceUnavailable: a 503 means "refused before any work" (SAP throttling, and this mock). Turn it off
+    // when a gateway can answer 503 after the backend committed; a POST then goes back to the pipeline, which
+    // looks in SAP before sending again.
+    public static bool ShouldRetry(Outcome<HttpResponseMessage> outcome, HttpRequestMessage? request, bool trustServiceUnavailable = true)
     {
         if (outcome.Result is { } response)
         {
             return response.StatusCode switch
             {
-                // The server explicitly refused before doing any work: always safe.
-                HttpStatusCode.TooManyRequests or HttpStatusCode.ServiceUnavailable => true,
+                HttpStatusCode.TooManyRequests => true,
+                HttpStatusCode.ServiceUnavailable => trustServiceUnavailable || IsSafeToRepeat(request),
                 // The request may have been processed: only repeat it if repeating is harmless.
                 HttpStatusCode.RequestTimeout or HttpStatusCode.InternalServerError or HttpStatusCode.BadGateway
                     or HttpStatusCode.GatewayTimeout => IsSafeToRepeat(request),
@@ -27,17 +27,12 @@ public static class RetryClassifier
 
         return outcome.Exception switch
         {
-            // Connection reset, timeout, dropped response: outcome unknown.
             HttpRequestException or TimeoutRejectedException or IOException => IsSafeToRepeat(request),
             _ => false,
         };
     }
 
-    /// <summary>
-    /// GET/HEAD/PUT/DELETE are idempotent by definition; a PATCH guarded by If-Match cannot apply twice
-    /// because the first success changes the ETag. A POST is never repeated blindly: an unknown outcome
-    /// is handed back to the pipeline, which checks SAP before sending again.
-    /// </summary>
+    // A PATCH guarded by If-Match cannot apply twice because the first success changes the ETag.
     public static bool IsSafeToRepeat(HttpRequestMessage? request)
     {
         if (request is null) return false;

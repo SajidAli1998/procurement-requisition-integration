@@ -1,10 +1,7 @@
 namespace Mocks.SapApi;
 
-/// <summary>
-/// Server side of the IETF Idempotency-Key draft (draft-ietf-httpapi-idempotency-key-header):
-/// same key + same body replays the first response, same key + different body is 422,
-/// and a duplicate arriving while the first is still processing is 409.
-/// </summary>
+// draft-ietf-httpapi-idempotency-key-header: the same key and body replays the first response,
+// the same key with a different body is 422, and a duplicate that arrives while the first is in flight is 409.
 public sealed class IdempotencyStore
 {
     public sealed record StoredResponse(int StatusCode, string Body, string? ETag, string? Location);
@@ -42,7 +39,7 @@ public sealed class IdempotencyStore
         }
     }
 
-    /// <summary>Failed attempts release the key so the client can retry with the same key.</summary>
+    // Failed attempts give the key back so the client can retry with it.
     public void Release(string key)
     {
         lock (_gate) _slots.Remove(key);

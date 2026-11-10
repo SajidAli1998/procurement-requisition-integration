@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 
 namespace Procurement.Sync.Clients;
 
-/// <summary>Wire format of the SAP purchase requisition service. Kept separate from the canonical model on purpose.</summary>
 public sealed record SapRequisitionDto
 {
     public string PurchaseRequisition { get; init; } = "";
@@ -66,7 +65,7 @@ public sealed record SapItemInput
     public DateOnly DeliveryDate { get; init; }
 }
 
-internal static class SapJson
+public static class SapJson
 {
     public static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
     {

@@ -12,10 +12,7 @@ using Procurement.Sync.Store;
 
 namespace Procurement.ScenarioTests.Infrastructure;
 
-/// <summary>
-/// Hosts both mocks in-process and wires the real sync services to them. The resilience pipeline is the
-/// production one; only waits are scaled down so retry and Retry-After behaviour runs in milliseconds.
-/// </summary>
+/// <summary>Uses the production resilience pipeline; only the waits are scaled down so retries run in milliseconds.</summary>
 public sealed class SyncHarness : IAsyncDisposable
 {
     public const string SapBase = "/sap/opu/odata/sap/API_PURCHASEREQ_PROCESS_SRV/";
@@ -34,7 +31,6 @@ public sealed class SyncHarness : IAsyncDisposable
     public HttpClient SourceAdmin { get; }
     public HttpClient SapAdmin { get; }
 
-    /// <param name="dataset">"Generated" (default) or "Workbook" for the client's data pack.</param>
     public SyncHarness(Dictionary<string, string?>? overrides = null, string dataset = "Generated")
     {
         _overrides = overrides ?? [];
@@ -48,7 +44,6 @@ public sealed class SyncHarness : IAsyncDisposable
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
-    /// <summary>Replaces the integration's database with an empty one, as if local state were lost.</summary>
     public async Task WipeLocalStateAsync()
     {
         await _services.DisposeAsync();
@@ -95,12 +90,11 @@ public sealed class SyncHarness : IAsyncDisposable
 
     public IServiceProvider Services => _services;
 
-    /// <summary>The assistant API, wired to the same source mock and integration store.</summary>
     public AssistantApiFactory Assistant => _assistant ??= new AssistantApiFactory(Source, ConnectionString, _dataset);
 
     public Task<RunResult> RunAsync() => _services.GetRequiredService<SyncRunner>().RunAsync("test", Ct);
 
-    /// <summary>Runs until nothing is left waiting for retry (bounded), as a scheduler would over time.</summary>
+    /// <summary>Runs until nothing waits for retry (bounded), as a scheduler would over time.</summary>
     public async Task<List<RunResult>> RunUntilSettledAsync(int maxRuns = 5)
     {
         var results = new List<RunResult>();

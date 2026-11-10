@@ -10,7 +10,6 @@ using Procurement.Sync.Store;
 
 namespace Procurement.ScenarioTests.Pipeline;
 
-/// <summary>Status synchronisation, write-back, reconciliation and operator actions.</summary>
 public sealed class StatusAndReportScenarioTests
 {
     private const int ExpectedInSap = 184;
@@ -55,7 +54,7 @@ public sealed class StatusAndReportScenarioTests
         record.ErpStatus.ShouldBe(ErpStatus.PoCreated);
         record.PurchaseOrder.ShouldNotBeNull().ShouldStartWith("45");
         (await SourceErpStatusAsync(h, id)).ShouldBe("PoCreated");
-        (await db.StatusHistory.CountAsync(s => s.SourceId == id, Ct)).ShouldBe(3, "Created → InRelease → PoCreated as observed by polling");
+        (await db.StatusHistory.CountAsync(s => s.SourceId == id, Ct)).ShouldBe(3, "Created, InRelease and PoCreated, as observed by polling");
     }
 
     [Fact(DisplayName = "S16 An out-of-order status from SAP is ignored")]

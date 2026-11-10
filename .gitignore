@@ -490,3 +490,15 @@ reports/*
 
 # Local service processes started by scripts/run-all
 .run/
+
+# Test Lab web app (Next.js)
+web/.next/
+web/out/
+web/.env*.local
+web/test-results/
+web/playwright-report/
+web/blob-report/
+web/next-env.d.ts
+
+# TypeScript build cache
+web/tsconfig.tsbuildinfo

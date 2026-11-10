@@ -1,9 +1,6 @@
 namespace Procurement.Contracts;
 
-/// <summary>
-/// Canonical procurement status owned by the ERP. Declared in lifecycle order; status updates
-/// only ever move forward (see <see cref="ErpStatusExtensions.CanTransitionTo"/>).
-/// </summary>
+// Declared in lifecycle order: CanTransitionTo relies on the numeric ordering.
 public enum ErpStatus
 {
     Created = 0,
@@ -18,10 +15,8 @@ public static class ErpStatusExtensions
 {
     public static bool IsTerminal(this ErpStatus status) => status is ErpStatus.Closed or ErpStatus.Rejected;
 
-    /// <summary>
-    /// Forward-only rule: equal or earlier statuses are stale (out-of-order or duplicate polls) and are ignored.
-    /// Rejected is reachable from any non-terminal state before PO creation.
-    /// </summary>
+    // Equal or earlier statuses come from out-of-order or duplicate polls and are ignored.
+    // Rejected can still arrive from any state before the PO exists.
     public static bool CanTransitionTo(this ErpStatus current, ErpStatus next)
     {
         if (current == next || current.IsTerminal()) return false;

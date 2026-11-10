@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 
 namespace Procurement.Sync.Http;
 
-/// <summary>Transport-level counters for the current run, reported in the reconciliation report.</summary>
 public sealed class RunMetrics
 {
     private readonly ConcurrentDictionary<string, long> _counters = new();

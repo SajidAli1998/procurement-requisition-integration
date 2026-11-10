@@ -1,0 +1,19 @@
+# Test Lab: API + web app. Set TESTLAB_KEY (16+ characters) in your shell or a .env file first.
+#   TESTLAB_KEY=$(openssl rand -hex 16) docker compose up --build
+# Web app: http://localhost:3000   API: http://localhost:5110/scalar
+services:
+  testlab:
+    build: { context: ., dockerfile: Dockerfile.testlab }
+    environment:
+      TESTLAB_KEY: ${TESTLAB_KEY:?set TESTLAB_KEY}
+    ports: ["127.0.0.1:5110:5110"]
+    volumes: ["testlab-results:/data"]
+  web:
+    build: { context: ./web }
+    environment:
+      TESTLAB_URL: http://testlab:5110
+      TESTLAB_KEY: ${TESTLAB_KEY:?set TESTLAB_KEY}
+    ports: ["127.0.0.1:3000:3000"]
+    depends_on: [testlab]
+volumes:
+  testlab-results:

@@ -10,7 +10,6 @@ using Procurement.Sync.Worker;
 
 var root = new RootCommand("procsync: synchronises approved purchase requisitions into SAP.");
 
-// procsync run
 var run = new Command("run", "Run one sync cycle and print a summary. Exit code 0 = clean, 1 = completed with issues, 3 = skipped (another run active).");
 run.SetAction((_, ct) => WithServices(async (services, token) =>
 {
@@ -19,7 +18,6 @@ run.SetAction((_, ct) => WithServices(async (services, token) =>
     return ExitCode(result);
 }, ct));
 
-// procsync serve --interval 60
 var interval = new Option<int>("--interval") { Description = "Seconds between cycles", DefaultValueFactory = _ => 60 };
 var serve = new Command("serve", "Run sync cycles continuously.") { interval };
 serve.SetAction(async (parse, ct) =>
@@ -31,7 +29,6 @@ serve.SetAction(async (parse, ct) =>
     return 0;
 });
 
-// procsync status <id>
 var statusId = new Argument<string>("id") { Description = "Source requisition id" };
 var status = new Command("status", "Show where one requisition stands: state, SAP number, status history and quarantine.") { statusId };
 status.SetAction((parse, ct) => WithServices(async (services, token) =>
@@ -54,7 +51,6 @@ status.SetAction((parse, ct) => WithServices(async (services, token) =>
     return 0;
 }, ct));
 
-// procsync quarantine list|show|replay|resolve
 var quarantine = new Command("quarantine", "Inspect and act on quarantined requisitions.");
 
 var reasonOption = new Option<QuarantineReason?>("--reason") { Description = "Only this reason" };
@@ -75,7 +71,7 @@ var show = new Command("show", "Show a quarantine entry with its suggested actio
 show.SetAction((parse, ct) => WithServices(async (services, token) =>
 {
     var view = await services.GetRequiredService<QuarantineService>().GetAsync(parse.GetValue(showId)!, token);
-    var entry = view?.Quarantine.LastOrDefault();
+    var entry = view?.Quarantine is [.., var last] ? last : null;
     if (entry is null)
     {
         Console.WriteLine("No quarantine entry for this requisition.");
@@ -114,7 +110,6 @@ quarantine.Subcommands.Add(show);
 quarantine.Subcommands.Add(replay);
 quarantine.Subcommands.Add(resolve);
 
-// procsync reconcile
 var reconcile = new Command("reconcile", "Check invariants against SAP and write a report without running a sync.");
 reconcile.SetAction((_, ct) => WithServices(async (services, token) =>
 {
@@ -127,7 +122,6 @@ reconcile.SetAction((_, ct) => WithServices(async (services, token) =>
     return report.Invariants.Any(i => i.Outcome == InvariantOutcome.Fail) ? 1 : 0;
 }, ct));
 
-// procsync check-expected [--report reports/latest.json]
 var reportPath = new Option<string?>("--report") { Description = "Report JSON to check (default: latest.json in the report directory)" };
 var checkExpected = new Command("check-expected",
     "Assessment data only: compare a run's per-requisition outcomes with the client's Reconciliation_Expected sheet. Use the report of the first run over the workbook.") { reportPath };

@@ -2,10 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Procurement.Sync.Store;
 
-/// <summary>
-/// Row-based lease that works on SQLite and SQL Server alike: a conditional UPDATE takes the lease
-/// only if it is free or expired, so two overlapping runs cannot both hold it.
-/// </summary>
+// A conditional UPDATE takes the lease only if it is free or expired, which works the same on SQLite and SQL Server.
 public sealed class LeaseManager(IDbContextFactory<SyncDbContext> dbFactory, TimeProvider time)
 {
     public async Task<bool> TryAcquireAsync(string name, string holder, TimeSpan duration, CancellationToken ct)
